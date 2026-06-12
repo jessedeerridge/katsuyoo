@@ -636,34 +636,36 @@
     inset: 0;
     z-index: 1;
     pointer-events: none;
-    overflow: hidden;
+    overflow: visible;
   }
 
   .question-memo-card {
     position: fixed;
-    width: 124px;
-    min-height: 34px;
-    padding: 5px 7px;
+    width: auto;
+    min-width: 150px;
+    max-width: none;
+    min-height: 42px;
+    padding: 6px 10px;
     border-radius: 12px;
-    background: rgba(255, 255, 255, 0.82);
+    background: rgba(255, 255, 255, 0.88);
     border: 1.5px dashed rgba(255, 111, 174, 0.62);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.10);
     color: #555;
-    font-size: 10px;
+    font-size: 12px;
     line-height: 1.15;
     font-weight: 700;
     text-align: center;
     transform-origin: center;
     word-break: keep-all;
     white-space: nowrap;
-    overflow: hidden;
+    overflow: visible;
   }
 
   .question-memo-card .memo-type {
-    display: none;
-    margin-bottom: 2px;
+    display: block;
+    margin-bottom: 3px;
     color: #ff6fae;
-    font-size: 9px;
+    font-size: 11px;
     line-height: 1;
   }
 
@@ -671,22 +673,26 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 3px;
+    gap: 4px;
     min-width: 0;
+    width: max-content;
+    margin: 0 auto;
+    overflow: visible;
   }
 
   .question-memo-card .memo-left,
   .question-memo-card .memo-right {
     display: block;
-    max-width: 54px;
-    overflow: hidden;
+    max-width: none;
+    min-width: max-content;
+    overflow: visible;
     text-overflow: clip;
   }
 
   .question-memo-card .memo-arrow {
     flex: 0 0 auto;
     color: #d90000;
-    font-size: 9px;
+    font-size: 11px;
   }
 
   .question-memo-card ruby,
@@ -701,20 +707,23 @@
 
   @media (max-width: 420px) {
     .question-memo-card {
-      width: 96px;
-      min-height: 30px;
-      padding: 4px 5px;
+      width: auto;
+      min-width: 132px;
+      min-height: 38px;
+      padding: 5px 8px;
       border-radius: 10px;
-      font-size: 8px;
+      font-size: 10px;
     }
 
     .question-memo-card .memo-type {
-      font-size: 7px;
+      display: block;
+      font-size: 9px;
     }
 
     .question-memo-card .memo-left,
     .question-memo-card .memo-right {
-      max-width: 42px;
+      max-width: none;
+      overflow: visible;
     }
   }
 
@@ -853,11 +862,12 @@
 
     <div class="menu-page" data-page="1">
       <button class="menu-btn" onclick="showTable('形-なかった')">形-なかった</button>
-      <button class="menu-btn" onclick="showTable('形-そうです')">形-そうです</button>
-      <button class="menu-btn" onclick="showTable('Vたい')">Vたい</button>
+      
+      <button class="menu-btn" onclick="showTable('Vたいです')">Vたいです</button>
       <button class="menu-btn" onclick="showTable('Vています')">Vています</button>
       <button class="menu-btn" onclick="showTable('Vてきます')">Vてきます</button>
       <button class="menu-btn" onclick="showTable('Vてもいいですか')">Vてもいいですか</button>
+      <button class="menu-btn" onclick="showTable('Vてください')">Vてください</button>
       <button class="menu-btn" onclick="showTable('Vないでください')">Vないでください</button>
       <button class="menu-btn" onclick="showTable('Vたことがあります')">Vたことがあります</button>
       <button class="menu-btn" onclick="showTable('Vたり')">Vたり</button>
@@ -1446,6 +1456,72 @@ function seededRandom(seed) {
   };
 }
 
+
+function typeNeedsFocusOnly(type, leftText) {
+  const t = type || "";
+  if (leftText && (leftText.includes("・") || leftText.includes("、"))) return false;
+  return [
+    "Vませんか", "Vましょう", "Vてもいいですか", "Vてください",
+    "Vないでください", "Vています", "Vてきます", "Vたことがあります"
+  ].some(name => t === name || t.includes(name));
+}
+
+function extractLastCoreHtml(html) {
+  const source = (html || "").trim();
+  if (!source) return "";
+
+  const lastRuby = source.lastIndexOf("<ruby");
+  if (lastRuby >= 0) {
+    return source.slice(lastRuby).replace(/^[\s　]+|[\s　]+$/g, "");
+  }
+
+  const text = stripHtmlForKey(source);
+  const m = text.match(/[ぁ-んァ-ン一-龥々ー]+(?:する|します|した|して|できる|できます|ないでください|てください|ています|てきます|ませんか|ましょう|たいです|たことがあります|てもいいですか|ない|ます|ました|かったです|くないです|くなかったです|です)?$/);
+  return m ? m[0] : source;
+}
+
+function getMemoDisplayItem(item) {
+  const type = item.type || "";
+  const leftText = item.leftText || stripHtmlForKey(item.leftHtml || "");
+  const rightText = item.rightText || stripHtmlForKey(item.rightHtml || "");
+  let leftHtml = item.leftHtml || "";
+  let rightHtml = item.rightHtml || "";
+
+  if (typeNeedsFocusOnly(type, leftText)) {
+    leftHtml = extractLastCoreHtml(leftHtml);
+    rightHtml = extractLastCoreHtml(rightHtml);
+  }
+
+  return { type, leftHtml, rightHtml, leftText, rightText };
+}
+
+function countMemoUnits(text) {
+  const s = String(text || "").replace(/\s+/g, "");
+  let units = 0;
+  for (const ch of s) {
+    if (/^[\x00-\x7F]$/.test(ch)) units += 0.62;
+    else if (/^[ぁ-んァ-ン一-龥々ー、。・！？]$/.test(ch)) units += 1;
+    else units += 0.85;
+  }
+  return Math.max(1, units);
+}
+
+function estimateMemoCardWidth(displayItem, viewportWidth) {
+  const left = stripHtmlForKey(displayItem.leftHtml || displayItem.leftText || "");
+  const right = stripHtmlForKey(displayItem.rightHtml || displayItem.rightText || "");
+  const type = displayItem.type || "";
+  const isSmall = viewportWidth <= 420;
+  const pairFont = isSmall ? 10 : 12;
+  const typeFont = isSmall ? 9 : 11;
+  const pairUnits = countMemoUnits(left) + countMemoUnits(right) + 1.8;
+  const typeUnits = countMemoUnits(type);
+  const pairWidth = pairUnits * pairFont + (isSmall ? 28 : 34);
+  const typeWidth = typeUnits * typeFont + (isSmall ? 22 : 28);
+  const minW = isSmall ? 132 : 150;
+  const maxW = Math.max(minW, viewportWidth - 16);
+  return Math.ceil(Math.min(maxW, Math.max(minW, pairWidth, typeWidth)));
+}
+
 function renderQuestionMemoLayer() {
   const layer = document.getElementById("questionMemoLayer");
   const menu = document.getElementById("menuScreen");
@@ -1458,20 +1534,21 @@ function renderQuestionMemoLayer() {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
   const isSmall = vw <= 420;
-  const cardW = isSmall ? 96 : 124;
-  const cardH = isSmall ? 30 : 36;
   const margin = 8;
   const forbidden = getForbiddenMemoRects();
   const placed = [];
 
   items.forEach((item, index) => {
+    const displayItem = getMemoDisplayItem(item);
+    const cardW = estimateMemoCardWidth(displayItem, vw);
+    const cardH = isSmall ? 48 : 54;
     const rand = seededRandom(`${item.key}:${index}`);
     const rotation = rand() < 0.5 ? -2 : 2;
     let pos = null;
 
-    for (let i = 0; i < 240; i++) {
+    for (let i = 0; i < 260; i++) {
       const side = i % 2 === 0 ? "left" : "right";
-      const zoneW = Math.max(cardW + margin * 2, vw * 0.30);
+      const zoneW = Math.max(cardW + margin * 2, vw * 0.34);
       const minX = side === "left" ? margin : Math.max(margin, vw - zoneW + margin);
       const maxX = side === "left" ? Math.min(vw - cardW - margin, zoneW - cardW - margin) : vw - cardW - margin;
       const x = minX + rand() * Math.max(1, maxX - minX);
@@ -1487,7 +1564,7 @@ function renderQuestionMemoLayer() {
 
     if (!pos) {
       const columns = Math.max(1, Math.floor(vw / (cardW + 10)));
-      const x = margin + (index % columns) * (cardW + 10);
+      const x = Math.min(vw - cardW - margin, margin + (index % columns) * (cardW + 10));
       const y = margin + Math.floor(index / columns) * (cardH + 10);
       const rect = { left: x, top: y, right: x + cardW, bottom: y + cardH };
       const unusable = forbidden.some(f => memoRectsOverlap(rect, f, 4));
@@ -1501,12 +1578,14 @@ function renderQuestionMemoLayer() {
     card.className = "question-memo-card";
     card.style.left = `${pos.x}px`;
     card.style.top = `${pos.y}px`;
+    card.style.width = `${cardW}px`;
     card.style.transform = `rotate(${rotation}deg)`;
     card.innerHTML = `
+      <span class="memo-type">${displayItem.type || ""}</span>
       <span class="memo-pair">
-        <span class="memo-left">${item.leftHtml || ""}</span>
+        <span class="memo-left">${displayItem.leftHtml || ""}</span>
         <span class="memo-arrow">→</span>
-        <span class="memo-right">${item.rightHtml || ""}</span>
+        <span class="memo-right">${displayItem.rightHtml || ""}</span>
       </span>
     `;
     layer.appendChild(card);
@@ -1532,7 +1611,7 @@ function showTable(type) {
   if (type === "Vます") {
     masuSwapped = false;
     makeMasuTable();
-  } else if (type === "Vたい" || type === "たい") {
+  } else if (type === "Vたいです" || type === "Vたい" || type === "たい") {
     makeTaiTable();
   } else if (type === "Vて") {
     makeTeTable();
@@ -1548,6 +1627,8 @@ function showTable(type) {
     makeMashouTable();
   } else if (type === "てもいいですか" || type === "Vてもいいですか") {
     makeTemoiiTable();
+  } else if (type === "Vてください" || type === "てください") {
+    makeTekudasaiTable();
   } else if (type === "Vないでください" || type === "ないでください") {
     makeNaideKudasaiTable();
   } else if (type === "ています" || type === "Vています") {
@@ -1578,8 +1659,6 @@ function showTable(type) {
     makeAdjectiveKunaiTable();
   } else if (type === "形-なかった" || type === "形-なかった") {
     makeAdjectiveKunakattaTable();
-  } else if (type === "形-そうです") {
-    makeAdjectiveSouTable();
   } else if (type === "とき") {
     makeTokiTable();
   } else {
@@ -2624,6 +2703,40 @@ const vTemoii30 = [
   ["ここへ <ruby>来<rt>く</rt></ruby>る", "ここへ <ruby>来<rt>き</rt></ruby>てもいいですか", ""]
 ];
 
+
+const vTekudasai30 = [
+  ["<ruby>買<rt>か</rt></ruby>う", "<ruby>買<rt>か</rt></ruby>ってください", "te-utsuru"],
+  ["<ruby>会<rt>あ</rt></ruby>う", "<ruby>会<rt>あ</rt></ruby>ってください", "te-utsuru"],
+  ["<ruby>使<rt>つか</rt></ruby>う", "<ruby>使<rt>つか</rt></ruby>ってください", "te-utsuru"],
+  ["<ruby>待<rt>ま</rt></ruby>つ", "<ruby>待<rt>ま</rt></ruby>ってください", "te-utsuru"],
+  ["<ruby>持<rt>も</rt></ruby>つ", "<ruby>持<rt>も</rt></ruby>ってください", "te-utsuru"],
+  ["<ruby>立<rt>た</rt></ruby>つ", "<ruby>立<rt>た</rt></ruby>ってください", "te-utsuru"],
+  ["<ruby>帰<rt>かえ</rt></ruby>る", "<ruby>帰<rt>かえ</rt></ruby>ってください", "te-utsuru"],
+  ["<ruby>入<rt>はい</rt></ruby>る", "<ruby>入<rt>はい</rt></ruby>ってください", "te-utsuru"],
+  ["<ruby>走<rt>はし</rt></ruby>る", "<ruby>走<rt>はし</rt></ruby>ってください", "te-utsuru"],
+  ["<ruby>飲<rt>の</rt></ruby>む", "<ruby>飲<rt>の</rt></ruby>んでください", "te-mubunu"],
+  ["<ruby>読<rt>よ</rt></ruby>む", "<ruby>読<rt>よ</rt></ruby>んでください", "te-mubunu"],
+  ["<ruby>休<rt>やす</rt></ruby>む", "<ruby>休<rt>やす</rt></ruby>んでください", "te-mubunu"],
+  ["<ruby>遊<rt>あそ</rt></ruby>ぶ", "<ruby>遊<rt>あそ</rt></ruby>んでください", "te-mubunu"],
+  ["<ruby>呼<rt>よ</rt></ruby>ぶ", "<ruby>呼<rt>よ</rt></ruby>んでください", "te-mubunu"],
+  ["<ruby>選<rt>えら</rt></ruby>ぶ", "<ruby>選<rt>えら</rt></ruby>んでください", "te-mubunu"],
+  ["<ruby>聞<rt>き</rt></ruby>く", "<ruby>聞<rt>き</rt></ruby>いてください", "te-ku"],
+  ["<ruby>書<rt>か</rt></ruby>く", "<ruby>書<rt>か</rt></ruby>いてください", "te-ku"],
+  ["<ruby>置<rt>お</rt></ruby>く", "<ruby>置<rt>お</rt></ruby>いてください", "te-ku"],
+  ["<ruby>働<rt>はたら</rt></ruby>く", "<ruby>働<rt>はたら</rt></ruby>いてください", "te-ku"],
+  ["<ruby>泳<rt>およ</rt></ruby>ぐ", "<ruby>泳<rt>およ</rt></ruby>いでください", "te-gu"],
+  ["<ruby>急<rt>いそ</rt></ruby>ぐ", "<ruby>急<rt>いそ</rt></ruby>いでください", "te-gu"],
+  ["<ruby>脱<rt>ぬ</rt></ruby>ぐ", "<ruby>脱<rt>ぬ</rt></ruby>いでください", "te-gu"],
+  ["<ruby>話<rt>はな</rt></ruby>す", "<ruby>話<rt>はな</rt></ruby>してください", "te-su"],
+  ["<ruby>貸<rt>か</rt></ruby>す", "<ruby>貸<rt>か</rt></ruby>してください", "te-su"],
+  ["<ruby>消<rt>け</rt></ruby>す", "<ruby>消<rt>け</rt></ruby>してください", "te-su"],
+  ["<ruby>行<rt>い</rt></ruby>く", "<ruby>行<rt>い</rt></ruby>ってください", "te-iku"],
+  ["<ruby>食<rt>た</rt></ruby>べる", "<ruby>食<rt>た</rt></ruby>べてください", "te-ichidan"],
+  ["<ruby>見<rt>み</rt></ruby>る", "<ruby>見<rt>み</rt></ruby>てください", "te-ichidan"],
+  ["する", "してください", ""],
+  ["<ruby>来<rt>く</rt></ruby>る", "<ruby>来<rt>き</rt></ruby>てください", ""]
+];
+
 const vNaideKudasai30 = [
   ["このペンを <ruby>使<rt>つか</rt></ruby>う", "このペンを <ruby>使<rt>つか</rt></ruby>わないでください", "te-utsuru"],
   ["ここで <ruby>待<rt>ま</rt></ruby>つ", "ここで <ruby>待<rt>ま</rt></ruby>たないでください", "te-utsuru"],
@@ -2891,10 +3004,11 @@ const vPotential30 = [
   ["<ruby>来<rt>く</rt></ruby>る", "<ruby>来<rt>こ</rt></ruby>られる"]
 ];
 
-function makeTaiTable() { makeFlat30Table("Vたい", "Vたいです", vTai30, "辞書形"); }
+function makeTaiTable() { makeFlat30Table("Vたいです", "Vたいです", vTai30, "辞書形"); }
 function makeMasenkaTable() { makeFlat30Table("Vませんか", "Vませんか", vMasenka30, "ヒント"); }
 function makeMashouTable() { makeFlat30Table("Vましょう", "Vましょう", vMashou30, "ヒント"); }
 function makeTemoiiTable() { makeFlat30Table("Vてもいいですか", "Vてもいいですか", vTemoii30, "ヒント"); }
+function makeTekudasaiTable() { makeFlatTaggedTable("Vてください", "Vてください", vTekudasai30); }
 function makeNaideKudasaiTable() { makeFlat30Table("Vないでください", "Vないでください", vNaideKudasai30, "ヒント"); }
 function makeTeimasuTable() { makeFlat30Table("Vています", "Vています", vTeimasu30, "ヒント"); }
 function makeTariTable() { makeFlat30Table("Vたり", "Vたり", vTari30, "ヒント"); }
