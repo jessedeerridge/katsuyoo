@@ -642,7 +642,7 @@
   .question-memo-card {
     position: fixed;
     width: auto;
-    min-width: 170px;
+    min-width: 0;
     max-width: calc(100vw - 16px);
     min-height: 38px;
     padding: 6px 9px;
@@ -655,34 +655,22 @@
     line-height: 1.15;
     font-weight: 700;
     text-align: center;
+    transform: var(--memo-rotation, rotate(0deg));
     transform-origin: center;
     word-break: keep-all;
     white-space: nowrap;
-    overflow: visible;
+    overflow: hidden;
     pointer-events: auto;
-  }
-
-  .question-memo-card .memo-show-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    margin-top: 5px;
-    padding: 3px 10px;
-    border: none;
-    border-radius: 999px;
-    background: #ff8ac2;
-    color: #fff;
-    font-size: 10px;
-    font-weight: 900;
-    line-height: 1.1;
-    box-shadow: 0 2px 0 #e15d9d;
     cursor: pointer;
     touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
   }
 
-  .question-memo-card .memo-show-btn:active {
-    transform: translateY(1px);
-    box-shadow: 0 1px 0 #e15d9d;
+  .question-memo-card:active {
+    transform: var(--memo-rotation, rotate(0deg)) scale(0.96);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.10);
   }
 
   .memo-empty-toast {
@@ -728,6 +716,8 @@
   .question-memo-card .memo-left,
   .question-memo-card .memo-right {
     display: block;
+    flex: 1 1 0;
+    min-width: 0;
     max-width: 54px;
     overflow: hidden;
     text-overflow: clip;
@@ -751,7 +741,6 @@
 
   @media (max-width: 420px) {
     .question-memo-card {
-      width: 96px;
       min-height: 30px;
       padding: 4px 5px;
       border-radius: 10px;
@@ -767,11 +756,6 @@
       max-width: 42px;
     }
 
-    .question-memo-card .memo-show-btn {
-      margin-top: 3px;
-      padding: 2px 8px;
-      font-size: 8px;
-    }
   }
 
 
@@ -1419,6 +1403,8 @@ const tokiVerbData = [
 
 
 const QUESTION_STORAGE_KEY = "katsuyouQuestionMarks_v1";
+const QUESTION_MEMO_LIMIT = 16;
+const QUESTION_MEMO_ZONE_LIMIT = 8;
 let currentTableType = "";
 
 function isValidQuestionItem(item) {
@@ -1450,6 +1436,7 @@ function safeParseQuestionStore() {
     const usedKeys = new Set();
 
     parsed.forEach(item => {
+      if (cleaned.length >= QUESTION_MEMO_LIMIT) return;
       if (!item || typeof item !== "object") return;
       const normalized = normalizeQuestionItem(item);
       if (!isValidQuestionItem(normalized)) return;
@@ -1458,7 +1445,7 @@ function safeParseQuestionStore() {
       cleaned.push(normalized);
     });
 
-    // 以前のバージョンで壊れたデータ・空データが残っていると、
+    // 以前のバージョンで壊れたデータ・空データ・上限超過データが残っていると、
     // 見た目は0個なのに「空きがありません」になるので、ここで掃除する。
     if (cleaned.length !== parsed.length) {
       saveQuestionStore(cleaned);
@@ -1473,7 +1460,7 @@ function safeParseQuestionStore() {
 function saveQuestionStore(items) {
   try {
     const cleaned = Array.isArray(items)
-      ? items.map(normalizeQuestionItem).filter(isValidQuestionItem)
+      ? items.map(normalizeQuestionItem).filter(isValidQuestionItem).slice(0, QUESTION_MEMO_LIMIT)
       : [];
     localStorage.setItem(QUESTION_STORAGE_KEY, JSON.stringify(cleaned));
   } catch (e) {
@@ -1587,45 +1574,34 @@ function getMemoDisplayItem(item) {
 function getMemoLayout(items) {
   items = Array.isArray(items) ? items.filter(isValidQuestionItem) : [];
   if (!items.length) return [];
+  if (items.length > QUESTION_MEMO_LIMIT) return null;
 
   const vw = window.innerWidth;
   const vh = window.innerHeight;
   const isSmall = vw <= 420;
-  const cardW = isSmall ? 158 : 220;
-  const cardH = isSmall ? 58 : 68;
-  const margin = 8;
-  const forbidden = getForbiddenMemoRects();
-  const placed = [];
-  const positions = [];
+  const margin = isSmall ? 5 : 8;
+  const gap = isSmall ? 4 : 6;
+  const columns = vw <= 720 ? 4 : 8;
+  const rowsPerZone = Math.ceil(QUESTION_MEMO_ZONE_LIMIT / columns);
+  const cardW = Math.floor((vw - margin * 2 - gap * (columns - 1)) / columns);
+  const cardH = isSmall ? 36 : 46;
+  const topY = margin;
+  const bottomY = Math.max(margin, vh - margin - rowsPerZone * cardH - (rowsPerZone - 1) * gap);
 
-  for (let index = 0; index < items.length; index++) {
-    const item = items[index];
+  return items.map((item, index) => {
+    const zoneIndex = index < QUESTION_MEMO_ZONE_LIMIT ? index : index - QUESTION_MEMO_ZONE_LIMIT;
+    const row = Math.floor(zoneIndex / columns);
+    const col = zoneIndex % columns;
     const rand = seededRandom(`${item.key}:${index}`);
-    const rotation = rand() < 0.5 ? -2 : 2;
-    let pos = null;
-
-    for (let i = 0; i < 420; i++) {
-      const side = i % 2 === 0 ? "left" : "right";
-      const zoneW = Math.max(cardW + margin * 2, vw * 0.34);
-      const minX = side === "left" ? margin : Math.max(margin, vw - zoneW + margin);
-      const maxX = side === "left" ? Math.min(vw - cardW - margin, zoneW - cardW - margin) : vw - cardW - margin;
-      const x = minX + rand() * Math.max(1, maxX - minX);
-      const y = margin + rand() * Math.max(1, vh - cardH - margin * 2);
-      const rect = { left: x, top: y, right: x + cardW, bottom: y + cardH };
-      const hitsForbidden = forbidden.some(f => memoRectsOverlap(rect, f, 5));
-      const hitsPlaced = placed.some(p => memoRectsOverlap(rect, p, 9));
-      if (!hitsForbidden && !hitsPlaced) {
-        pos = { x, y, rotation, rect };
-        break;
-      }
-    }
-
-    if (!pos) return null;
-    placed.push(pos.rect);
-    positions.push(pos);
-  }
-
-  return positions;
+    const rotation = rand() < 0.5 ? -1.5 : 1.5;
+    return {
+      x: margin + col * (cardW + gap),
+      y: (index < QUESTION_MEMO_ZONE_LIMIT ? topY : bottomY) + row * (cardH + gap),
+      width: cardW,
+      height: cardH,
+      rotation
+    };
+  });
 }
 
 function canPlaceQuestionMemo(items) {
@@ -1680,22 +1656,28 @@ function renderQuestionMemoLayer() {
     card.className = "question-memo-card";
     card.style.left = `${pos.x}px`;
     card.style.top = `${pos.y}px`;
-    card.style.transform = `rotate(${pos.rotation}deg)`;
+    card.style.width = `${pos.width}px`;
+    card.style.minHeight = `${pos.height}px`;
+    card.style.setProperty("--memo-rotation", `rotate(${pos.rotation}deg)`);
+    card.setAttribute("role", "button");
+    card.setAttribute("tabindex", "0");
+    card.dataset.type = item.type;
+    card.dataset.key = item.key;
     card.innerHTML = `
       <span class="memo-pair">
         <span class="memo-left">${displayItem.leftHtml || ""}</span>
         <span class="memo-arrow">→</span>
         <span class="memo-right">${displayItem.rightHtml || ""}</span>
       </span>
-      <button type="button" class="memo-show-btn" data-type="${escapeForAttr(item.type)}" data-key="${escapeForAttr(item.key)}">表示</button>
     `;
-    const btn = card.querySelector(".memo-show-btn");
-    if (btn) {
-      btn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        showTable(btn.dataset.type || item.type, btn.dataset.key || item.key);
-      });
-    }
+    const openMemo = () => showTable(card.dataset.type || item.type, card.dataset.key || item.key);
+    card.addEventListener("click", openMemo);
+    card.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        openMemo();
+      }
+    });
     layer.appendChild(card);
   });
 }
@@ -3230,9 +3212,7 @@ function toggleQuestionMark(button) {
   } else {
     const nextItems = items.concat([normalizeQuestionItem(info)]);
 
-    // 0個の状態では必ず1個目を保存する。
-    // 1個以上ある時だけ、追加後の表示スペースを判定する。
-    if (items.length >= 1 && !canPlaceQuestionMemo(nextItems)) {
+    if (nextItems.length > QUESTION_MEMO_LIMIT || !canPlaceQuestionMemo(nextItems)) {
       showEmptyMemoToast();
       button.classList.remove("active");
       return;
