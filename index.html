@@ -1905,6 +1905,7 @@ function renderQuestionMemoLayer() {
 }
 
 let maskAnimationId = null;
+let maskListenersActive = false;
 let tableVisible = false;
 let masuSwapped = false;
 
@@ -3579,26 +3580,31 @@ function adjustScrollExtraHeight() {
   extra.style.height = `${extraHeight}px`;
 }
 
+function scheduleMaskUpdate() {
+  if (!tableVisible || maskAnimationId !== null) return;
+
+  maskAnimationId = requestAnimationFrame(() => {
+    maskAnimationId = null;
+    if (tableVisible) updateSheetHiddenText();
+  });
+}
+
 function startMaskLoop() {
-  if (maskAnimationId !== null) return;
-
-  const loop = () => {
-    if (!tableVisible) {
-      maskAnimationId = null;
-      return;
-    }
-
-    updateSheetHiddenText();
-    maskAnimationId = requestAnimationFrame(loop);
-  };
-
-  maskAnimationId = requestAnimationFrame(loop);
+  if (!maskListenersActive) {
+    window.addEventListener("scroll", scheduleMaskUpdate, { passive: true });
+    maskListenersActive = true;
+  }
+  scheduleMaskUpdate();
 }
 
 function stopMaskLoop() {
   if (maskAnimationId !== null) {
     cancelAnimationFrame(maskAnimationId);
     maskAnimationId = null;
+  }
+  if (maskListenersActive) {
+    window.removeEventListener("scroll", scheduleMaskUpdate);
+    maskListenersActive = false;
   }
 }
 
@@ -3706,6 +3712,60 @@ function segmentsIntersect(a, b, c, d) {
     || (d4 === 0 && onSegment(a, d, b));
 }
 
+
+function clipPolygonToRect(polygon, rect) {
+  const edges = [
+    { inside: point => point.x >= rect.left, intersect: (a, b) => intersectWithVertical(a, b, rect.left) },
+    { inside: point => point.x <= rect.right, intersect: (a, b) => intersectWithVertical(a, b, rect.right) },
+    { inside: point => point.y >= rect.top, intersect: (a, b) => intersectWithHorizontal(a, b, rect.top) },
+    { inside: point => point.y <= rect.bottom, intersect: (a, b) => intersectWithHorizontal(a, b, rect.bottom) }
+  ];
+
+  return edges.reduce((points, edge) => {
+    if (points.length === 0) return points;
+
+    const clipped = [];
+    let previous = points[points.length - 1];
+    let previousInside = edge.inside(previous);
+
+    points.forEach(current => {
+      const currentInside = edge.inside(current);
+      if (currentInside) {
+        if (!previousInside) clipped.push(edge.intersect(previous, current));
+        clipped.push(current);
+      } else if (previousInside) {
+        clipped.push(edge.intersect(previous, current));
+      }
+      previous = current;
+      previousInside = currentInside;
+    });
+
+    return clipped.filter(point => Number.isFinite(point.x) && Number.isFinite(point.y));
+  }, polygon);
+}
+
+function intersectWithVertical(a, b, x) {
+  const dx = b.x - a.x;
+  if (Math.abs(dx) < 0.0001) return { x, y: a.y };
+  const t = (x - a.x) / dx;
+  return { x, y: a.y + (b.y - a.y) * t };
+}
+
+function intersectWithHorizontal(a, b, y) {
+  const dy = b.y - a.y;
+  if (Math.abs(dy) < 0.0001) return { x: a.x, y };
+  const t = (y - a.y) / dy;
+  return { x: a.x + (b.x - a.x) * t, y };
+}
+
+function getPolygonArea(points) {
+  if (points.length < 3) return 0;
+  return Math.abs(points.reduce((sum, point, index) => {
+    const nextPoint = points[(index + 1) % points.length];
+    return sum + point.x * nextPoint.y - nextPoint.x * point.y;
+  }, 0)) / 2;
+}
+
 function polygonIntersectsRect(polygon, rect) {
   if (!rectsOverlap(getPolygonBounds(polygon), rect)) return false;
   const rectPoints = [
@@ -3758,8 +3818,7 @@ function updateSheetHiddenText() {
   if (!sheet || texts.length === 0) return;
 
   const sheetPolygon = getSheetPolygon(sheet);
-  const dpr = window.devicePixelRatio || 1;
-  const snap = value => Math.round(value * dpr) / dpr;
+  const snap = value => Math.round(value * 2) / 2;
 
   texts.forEach(text => {
     const rect = text.getBoundingClientRect();
@@ -3781,13 +3840,20 @@ function updateSheetHiddenText() {
     }
 
     /*
-      赤シートと重なった斜めの四角形だけをSVGマスクで透明にする。
-      getBoundingClientRect()だけで判定すると回転後の外接長方形になり、赤シートの傾きが無視されるため、
-      CSS transform後の四隅を文字要素の座標へ変換して、その多角形だけを抜く。
+      赤シートと実際に重なった部分だけをSVGマスクで透明にする。
+      先に赤シートの傾いた四角形を文字の外接四角形で切り抜くことで、
+      iOS/Safariで画面外まで伸びた大きな多角形が文字全体を消す誤判定を避ける。
+      判定自体はCSS transform後の四隅を使うため、平行な外接長方形ではなく傾きを保ったまま扱う。
     */
+    const clippedSheetPolygon = clipPolygonToRect(sheetPolygon, textRect);
+    if (clippedSheetPolygon.length < 3 || getPolygonArea(clippedSheetPolygon) < 1) {
+      if (text.dataset.maskKey || text.dataset.clipKey) clearTextMask(text);
+      return;
+    }
+
     const width = Math.max(1, snap(rect.width));
     const height = Math.max(1, snap(rect.height));
-    const maskPoints = sheetPolygon.map(point => ({
+    const maskPoints = clippedSheetPolygon.map(point => ({
       x: snap(point.x - rect.left),
       y: snap(point.y - rect.top)
     }));
@@ -3799,7 +3865,7 @@ function updateSheetHiddenText() {
     text.dataset.maskKey = key;
     text.dataset.clipKey = "";
 
-    const maskId = `sheet-cut-${key.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
+    const maskId = "sheet-cut";
     const svg = `
       <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
         <defs>
