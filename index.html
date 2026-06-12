@@ -3619,16 +3619,48 @@ function clearAllMasks() {
   });
 }
 
-function getSheetRect(sheet) {
+function getSheetPolygon(sheet) {
   const rect = sheet.getBoundingClientRect();
-  const dpr = window.devicePixelRatio || 1;
-  const snapDown = value => Math.floor(value * dpr) / dpr;
-  const snapUp = value => Math.ceil(value * dpr) / dpr;
+  const style = window.getComputedStyle(sheet);
+  const width = sheet.offsetWidth;
+  const height = sheet.offsetHeight;
+  const originParts = style.transformOrigin.split(" ");
+  const originX = Number.parseFloat(originParts[0]) || width;
+  const originY = Number.parseFloat(originParts[1]) || height / 2;
+  const MatrixConstructor = window.DOMMatrixReadOnly || window.DOMMatrix || window.WebKitCSSMatrix;
+  const matrix = MatrixConstructor && style.transform && style.transform !== "none"
+    ? new MatrixConstructor(style.transform)
+    : { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 };
+
+  const localCorners = [
+    { x: 0, y: 0 },
+    { x: width, y: 0 },
+    { x: width, y: height },
+    { x: 0, y: height }
+  ];
+  const transformedFromOrigin = localCorners.map(point => ({
+    x: matrix.a * (point.x - originX) + matrix.c * (point.y - originY) + matrix.e,
+    y: matrix.b * (point.x - originX) + matrix.d * (point.y - originY) + matrix.f
+  }));
+  const minX = Math.min(...transformedFromOrigin.map(point => point.x));
+  const minY = Math.min(...transformedFromOrigin.map(point => point.y));
+  const origin = {
+    x: rect.left - minX,
+    y: rect.top - minY
+  };
+
+  return transformedFromOrigin.map(point => ({
+    x: origin.x + point.x,
+    y: origin.y + point.y
+  }));
+}
+
+function getPolygonBounds(points) {
   return {
-    left: snapDown(rect.left),
-    right: snapUp(rect.right),
-    top: snapDown(rect.top),
-    bottom: snapUp(rect.bottom)
+    left: Math.min(...points.map(point => point.x)),
+    right: Math.max(...points.map(point => point.x)),
+    top: Math.min(...points.map(point => point.y)),
+    bottom: Math.max(...points.map(point => point.y))
   };
 }
 
@@ -3636,6 +3668,62 @@ function rectsOverlap(a, b) {
   const overlapX = Math.min(a.right, b.right) - Math.max(a.left, b.left);
   const overlapY = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
   return overlapX > 1.5 && overlapY > 1.5;
+}
+
+function pointInRect(point, rect) {
+  return point.x >= rect.left && point.x <= rect.right && point.y >= rect.top && point.y <= rect.bottom;
+}
+
+function pointInPolygon(point, polygon) {
+  let inside = false;
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+    const current = polygon[i];
+    const previous = polygon[j];
+    const crosses = (current.y > point.y) !== (previous.y > point.y)
+      && point.x < ((previous.x - current.x) * (point.y - current.y)) / (previous.y - current.y) + current.x;
+    if (crosses) inside = !inside;
+  }
+  return inside;
+}
+
+function segmentsIntersect(a, b, c, d) {
+  const direction = (p, q, r) => (r.x - p.x) * (q.y - p.y) - (q.x - p.x) * (r.y - p.y);
+  const onSegment = (p, q, r) => (
+    Math.min(p.x, r.x) <= q.x && q.x <= Math.max(p.x, r.x)
+    && Math.min(p.y, r.y) <= q.y && q.y <= Math.max(p.y, r.y)
+  );
+  const d1 = direction(c, d, a);
+  const d2 = direction(c, d, b);
+  const d3 = direction(a, b, c);
+  const d4 = direction(a, b, d);
+
+  if (((d1 > 0 && d2 < 0) || (d1 < 0 && d2 > 0)) && ((d3 > 0 && d4 < 0) || (d3 < 0 && d4 > 0))) {
+    return true;
+  }
+  return (d1 === 0 && onSegment(c, a, d))
+    || (d2 === 0 && onSegment(c, b, d))
+    || (d3 === 0 && onSegment(a, c, b))
+    || (d4 === 0 && onSegment(a, d, b));
+}
+
+function polygonIntersectsRect(polygon, rect) {
+  if (!rectsOverlap(getPolygonBounds(polygon), rect)) return false;
+  const rectPoints = [
+    { x: rect.left, y: rect.top },
+    { x: rect.right, y: rect.top },
+    { x: rect.right, y: rect.bottom },
+    { x: rect.left, y: rect.bottom }
+  ];
+  if (polygon.some(point => pointInRect(point, rect))) return true;
+  if (rectPoints.some(point => pointInPolygon(point, polygon))) return true;
+
+  return polygon.some((point, index) => {
+    const nextPoint = polygon[(index + 1) % polygon.length];
+    return rectPoints.some((rectPoint, rectIndex) => {
+      const nextRectPoint = rectPoints[(rectIndex + 1) % rectPoints.length];
+      return segmentsIntersect(point, nextPoint, rectPoint, nextRectPoint);
+    });
+  });
 }
 
 function escapeSvgForDataUrl(svg) {
@@ -3669,51 +3757,72 @@ function updateSheetHiddenText() {
 
   if (!sheet || texts.length === 0) return;
 
-  const sheetRect = getSheetRect(sheet);
+  const sheetPolygon = getSheetPolygon(sheet);
   const dpr = window.devicePixelRatio || 1;
   const snap = value => Math.round(value * dpr) / dpr;
-  const minVerticalOverlap = 1.5;
-  const minHorizontalOverlap = 1.5;
 
   texts.forEach(text => {
     const rect = text.getBoundingClientRect();
     if (rect.width <= 0 || rect.height <= 0) {
-      if (text.dataset.clipKey) clearTextMask(text);
+      if (text.dataset.maskKey || text.dataset.clipKey) clearTextMask(text);
       return;
     }
 
-    const verticalOverlap = Math.min(sheetRect.bottom, rect.bottom) - Math.max(sheetRect.top, rect.top);
-    const horizontalOverlap = Math.min(sheetRect.right, rect.right) - Math.max(sheetRect.left, rect.left);
+    const textRect = {
+      left: rect.left,
+      right: rect.right,
+      top: rect.top,
+      bottom: rect.bottom
+    };
 
-    if (verticalOverlap < minVerticalOverlap || horizontalOverlap < minHorizontalOverlap) {
-      if (text.dataset.clipKey) clearTextMask(text);
+    if (!polygonIntersectsRect(sheetPolygon, textRect)) {
+      if (text.dataset.maskKey || text.dataset.clipKey) clearTextMask(text);
       return;
     }
 
     /*
-      スマホでのちらつき対策：
-      毎フレームSVGマスク画像を作り直すと、赤シートとの接触点で再描画がちらつく。
-      赤シートは右側から重なるので、clip-pathで右側だけを安定して切り取る。
+      赤シートと重なった斜めの四角形だけをSVGマスクで透明にする。
+      getBoundingClientRect()だけで判定すると回転後の外接長方形になり、赤シートの傾きが無視されるため、
+      CSS transform後の四隅を文字要素の座標へ変換して、その多角形だけを抜く。
     */
-    let hiddenRight = rect.right - Math.max(sheetRect.left, rect.left);
-    hiddenRight = Math.max(0, Math.min(rect.width, snap(hiddenRight + 0.75)));
+    const width = Math.max(1, snap(rect.width));
+    const height = Math.max(1, snap(rect.height));
+    const maskPoints = sheetPolygon.map(point => ({
+      x: snap(point.x - rect.left),
+      y: snap(point.y - rect.top)
+    }));
+    const pointsValue = maskPoints.map(point => `${point.x},${point.y}`).join(" ");
 
-    if (hiddenRight < minHorizontalOverlap) {
-      if (text.dataset.clipKey) clearTextMask(text);
-      return;
-    }
+    const key = `${width},${height},${pointsValue}`;
+    if (text.dataset.maskKey === key) return;
 
-    const key = `${snap(rect.width)},${snap(rect.height)},${hiddenRight}`;
-    if (text.dataset.clipKey === key) return;
+    text.dataset.maskKey = key;
+    text.dataset.clipKey = "";
 
-    text.dataset.clipKey = key;
-    text.dataset.maskKey = "";
+    const maskId = `sheet-cut-${key.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
+    const svg = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+        <defs>
+          <mask id="${maskId}" maskUnits="userSpaceOnUse">
+            <rect x="0" y="0" width="${width}" height="${height}" fill="white"/>
+            <polygon points="${pointsValue}" fill="black"/>
+          </mask>
+        </defs>
+        <rect x="0" y="0" width="${width}" height="${height}" fill="black" mask="url(#${maskId})"/>
+      </svg>
+    `;
+    const maskUrl = `url("data:image/svg+xml,${escapeSvgForDataUrl(svg)}")`;
 
-    const clipValue = `inset(0 ${hiddenRight}px 0 0)`;
-    text.style.webkitMaskImage = "";
-    text.style.maskImage = "";
-    text.style.webkitClipPath = clipValue;
-    text.style.clipPath = clipValue;
+    text.style.webkitClipPath = "";
+    text.style.clipPath = "";
+    text.style.webkitMaskImage = maskUrl;
+    text.style.maskImage = maskUrl;
+    text.style.webkitMaskSize = "100% 100%";
+    text.style.maskSize = "100% 100%";
+    text.style.webkitMaskRepeat = "no-repeat";
+    text.style.maskRepeat = "no-repeat";
+    text.style.webkitMaskPosition = "0 0";
+    text.style.maskPosition = "0 0";
   });
 }
 function preventMobileZoom() {
