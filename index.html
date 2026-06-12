@@ -929,6 +929,9 @@
       <button class="menu-btn" onclick="showTable('Vてください')">Vてください</button>
       <button class="menu-btn" onclick="showTable('Vています')">Vています</button>
       <button class="menu-btn" onclick="showTable('Vてきます')">Vてきます</button>
+    </div>
+
+    <div class="menu-page" data-page="2">
       <button class="menu-btn" onclick="showTable('Vてもいいですか')">Vてもいいですか</button>
       <button class="menu-btn" onclick="showTable('Vないでください')">Vないでください</button>
       <button class="menu-btn" onclick="showTable('Vたことがありますか')">Vたことがありますか</button>
@@ -936,7 +939,7 @@
       <button class="menu-btn" onclick="showTable('Vたら')">Vたら</button>
     </div>
 
-    <div class="menu-page" data-page="2">
+    <div class="menu-page" data-page="3">
       <button class="menu-btn" onclick="showTable('Vられる')">Vられる</button>
       <button class="menu-btn" onclick="showTable('Vさせる')">Vさせる</button>
       <button class="menu-btn" onclick="showTable('Vさせられる')">Vさせられる</button>
@@ -950,7 +953,7 @@
 
   <div id="rightPageNav" class="page-nav right-nav">
     <button class="page-arrow" type="button" onclick="changeMenuPage(1)">▶</button>
-    <div id="rightPageLabel" class="page-nav-label">初級</div>
+    <div id="rightPageLabel" class="page-nav-label">初級1</div>
   </div>
 </div>
 
@@ -978,7 +981,7 @@ function closeStartNotice() {
 
 
 let currentMenuPage = 0;
-const menuPageNames = ["基礎", "初級", "初中級"];
+const menuPageNames = ["基礎", "初級1", "初級2", "初中級"];
 
 function updateMenuPage() {
   document.querySelectorAll(".menu-page").forEach((page, index) => {
