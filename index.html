@@ -471,6 +471,7 @@
 
   .answer-text {
     display: inline-block;
+    position: relative;
     color: #d90000;
 
     -webkit-mask-repeat: no-repeat;
@@ -489,6 +490,18 @@
     -webkit-backface-visibility: hidden;
     contain: paint;
     transform: translateZ(0);
+  }
+
+  .answer-mask-cover {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    background: var(--answer-mask-bg, white);
+    -webkit-clip-path: polygon(0 0, 0 0, 0 0);
+    clip-path: polygon(0 0, 0 0, 0 0);
+    transform: translateZ(0);
+    will-change: clip-path;
   }
 
   .red-sheet {
@@ -3796,6 +3809,22 @@ function escapeSvgForDataUrl(svg) {
     .replace(/\s{2,}/g, " ");
 }
 
+function getAnswerMaskCover(text) {
+  let cover = text.querySelector(":scope > .answer-mask-cover");
+  if (!cover) {
+    cover = document.createElement("span");
+    cover.className = "answer-mask-cover";
+    cover.setAttribute("aria-hidden", "true");
+    text.appendChild(cover);
+  }
+  return cover;
+}
+
+function getAnswerMaskBackground(text) {
+  const colorSource = text.closest("td, th, .phrase-color, .question-box") || text.parentElement || text;
+  return window.getComputedStyle(colorSource).backgroundColor || "white";
+}
+
 function clearTextMask(text) {
   text.style.webkitMaskImage = "";
   text.style.maskImage = "";
@@ -3807,6 +3836,8 @@ function clearTextMask(text) {
   text.style.maskPosition = "";
   text.style.webkitClipPath = "";
   text.style.clipPath = "";
+  const cover = text.querySelector(":scope > .answer-mask-cover");
+  if (cover) cover.remove();
   text.dataset.maskKey = "";
   text.dataset.clipKey = "";
 }
@@ -3857,38 +3888,25 @@ function updateSheetHiddenText() {
       x: snap(point.x - rect.left),
       y: snap(point.y - rect.top)
     }));
-    const pointsValue = maskPoints.map(point => `${point.x},${point.y}`).join(" ");
+    const pointsValue = maskPoints.map(point => `${point.x}px ${point.y}px`).join(", ");
+    const polygonValue = `polygon(${pointsValue})`;
+    const backgroundColor = getAnswerMaskBackground(text);
 
-    const key = `${width},${height},${pointsValue}`;
+    const key = `${width},${height},${pointsValue},${backgroundColor}`;
     if (text.dataset.maskKey === key) return;
 
     text.dataset.maskKey = key;
     text.dataset.clipKey = "";
 
-    const maskId = "sheet-cut";
-    const svg = `
-      <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
-        <defs>
-          <mask id="${maskId}" maskUnits="userSpaceOnUse">
-            <rect x="0" y="0" width="${width}" height="${height}" fill="white"/>
-            <polygon points="${pointsValue}" fill="black"/>
-          </mask>
-        </defs>
-        <rect x="0" y="0" width="${width}" height="${height}" fill="black" mask="url(#${maskId})"/>
-      </svg>
-    `;
-    const maskUrl = `url("data:image/svg+xml,${escapeSvgForDataUrl(svg)}")`;
+    const cover = getAnswerMaskCover(text);
+    cover.style.background = backgroundColor;
+    cover.style.webkitClipPath = polygonValue;
+    cover.style.clipPath = polygonValue;
 
     text.style.webkitClipPath = "";
     text.style.clipPath = "";
-    text.style.webkitMaskImage = maskUrl;
-    text.style.maskImage = maskUrl;
-    text.style.webkitMaskSize = "100% 100%";
-    text.style.maskSize = "100% 100%";
-    text.style.webkitMaskRepeat = "no-repeat";
-    text.style.maskRepeat = "no-repeat";
-    text.style.webkitMaskPosition = "0 0";
-    text.style.maskPosition = "0 0";
+    text.style.webkitMaskImage = "";
+    text.style.maskImage = "";
   });
 }
 function preventMobileZoom() {
