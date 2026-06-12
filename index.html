@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
 
-<title>活用練習 v24</title>
+<title>活用練習 v27</title>
 
 <style>
   @import url("https://fonts.googleapis.com/css2?family=Kosugi+Maru&family=Ma+Shan+Zheng&family=ZCOOL+KuaiLe&display=swap");
@@ -628,6 +628,97 @@
   #tableArea .phrase-color.te-iku { background: #eee6ff !important; }
   #tableArea .phrase-color.te-ichidan { background: #fffbe3 !important; }
 
+
+
+  /* ===== ？保存メモ：トップ画面に小さく表示 ===== */
+  #questionMemoLayer {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  .question-memo-card {
+    position: fixed;
+    width: 124px;
+    min-height: 34px;
+    padding: 5px 7px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.82);
+    border: 1.5px dashed rgba(255, 111, 174, 0.62);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.10);
+    color: #555;
+    font-size: 10px;
+    line-height: 1.15;
+    font-weight: 700;
+    text-align: center;
+    transform-origin: center;
+    word-break: keep-all;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+
+  .question-memo-card .memo-type {
+    display: none;
+    margin-bottom: 2px;
+    color: #ff6fae;
+    font-size: 9px;
+    line-height: 1;
+  }
+
+  .question-memo-card .memo-pair {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    min-width: 0;
+  }
+
+  .question-memo-card .memo-left,
+  .question-memo-card .memo-right {
+    display: block;
+    max-width: 54px;
+    overflow: hidden;
+    text-overflow: clip;
+  }
+
+  .question-memo-card .memo-arrow {
+    flex: 0 0 auto;
+    color: #d90000;
+    font-size: 9px;
+  }
+
+  .question-memo-card ruby,
+  .question-memo-card rt {
+    ruby-position: over;
+  }
+
+  .question-memo-card rt {
+    font-size: 0.55em;
+    color: #777;
+  }
+
+  @media (max-width: 420px) {
+    .question-memo-card {
+      width: 96px;
+      min-height: 30px;
+      padding: 4px 5px;
+      border-radius: 10px;
+      font-size: 8px;
+    }
+
+    .question-memo-card .memo-type {
+      font-size: 7px;
+    }
+
+    .question-memo-card .memo-left,
+    .question-memo-card .memo-right {
+      max-width: 42px;
+    }
+  }
+
+
   /* ===== 起動時の説明パネル ===== */
   .start-notice-overlay {
     position: fixed;
@@ -743,6 +834,7 @@
 
 
 <div id="menuScreen" class="screen">
+  <div id="questionMemoLayer" aria-hidden="true"></div>
   <div class="page-title"><span class="title-emoji left">🐢</span> 活用れんしゅう <span class="title-emoji right">🐢</span></div>
 
   <div class="button-grid">
@@ -761,10 +853,12 @@
 
     <div class="menu-page" data-page="1">
       <button class="menu-btn" onclick="showTable('形-なかった')">形-なかった</button>
+      <button class="menu-btn" onclick="showTable('形-そうです')">形-そうです</button>
       <button class="menu-btn" onclick="showTable('Vたい')">Vたい</button>
       <button class="menu-btn" onclick="showTable('Vています')">Vています</button>
       <button class="menu-btn" onclick="showTable('Vてきます')">Vてきます</button>
       <button class="menu-btn" onclick="showTable('Vてもいいですか')">Vてもいいですか</button>
+      <button class="menu-btn" onclick="showTable('Vないでください')">Vないでください</button>
       <button class="menu-btn" onclick="showTable('Vたことがあります')">Vたことがあります</button>
       <button class="menu-btn" onclick="showTable('Vたり')">Vたり</button>
       <button class="menu-btn" onclick="showTable('Vたら')">Vたら</button>
@@ -1188,6 +1282,43 @@ const adjectiveNaBaseData = [
   ["<ruby>有名<rt>ゆうめい</rt></ruby>", "<ruby>有名<rt>ゆうめい</rt></ruby>で", "<ruby>有名<rt>ゆうめい</rt></ruby>でした", "<ruby>有名<rt>ゆうめい</rt></ruby>じゃないです", "<ruby>有名<rt>ゆうめい</rt></ruby>じゃなかったです"]
 ];
 
+const adjectiveSouIBaseData = [
+  ["<ruby>新<rt>あたら</rt></ruby>しい", "<ruby>新<rt>あたら</rt></ruby>しそうです"],
+  ["<ruby>古<rt>ふる</rt></ruby>い", "<ruby>古<rt>ふる</rt></ruby>そうです"],
+  ["<ruby>高<rt>たか</rt></ruby>い", "<ruby>高<rt>たか</rt></ruby>そうです"],
+  ["<ruby>安<rt>やす</rt></ruby>い", "<ruby>安<rt>やす</rt></ruby>そうです"],
+  ["<ruby>大<rt>おお</rt></ruby>きい", "<ruby>大<rt>おお</rt></ruby>きそうです"],
+  ["<ruby>小<rt>ちい</rt></ruby>さい", "<ruby>小<rt>ちい</rt></ruby>さそうです"],
+  ["<ruby>暑<rt>あつ</rt></ruby>い", "<ruby>暑<rt>あつ</rt></ruby>そうです"],
+  ["<ruby>寒<rt>さむ</rt></ruby>い", "<ruby>寒<rt>さむ</rt></ruby>そうです"],
+  ["<ruby>熱<rt>あつ</rt></ruby>い", "<ruby>熱<rt>あつ</rt></ruby>そうです"],
+  ["<ruby>冷<rt>つめ</rt></ruby>たい", "<ruby>冷<rt>つめ</rt></ruby>たそうです"],
+  ["<ruby>難<rt>むずか</rt></ruby>しい", "<ruby>難<rt>むずか</rt></ruby>しそうです"],
+  ["やさしい", "やさしそうです"],
+  ["おいしい", "おいしそうです"],
+  ["<ruby>忙<rt>いそが</rt></ruby>しい", "<ruby>忙<rt>いそが</rt></ruby>しそうです"],
+  ["<ruby>楽<rt>たの</rt></ruby>しい", "<ruby>楽<rt>たの</rt></ruby>しそうです"],
+  ["<ruby>早<rt>はや</rt></ruby>い", "<ruby>早<rt>はや</rt></ruby>そうです"],
+  ["<ruby>遅<rt>おそ</rt></ruby>い", "<ruby>遅<rt>おそ</rt></ruby>そうです"],
+  ["<ruby>近<rt>ちか</rt></ruby>い", "<ruby>近<rt>ちか</rt></ruby>そうです"],
+  ["いい", "よさそうです"],
+  ["かっこいい", "かっこよさそうです"]
+];
+
+const adjectiveSouNaBaseData = [
+  ["きれい", "きれいそうです"],
+  ["<ruby>静<rt>しず</rt></ruby>か", "<ruby>静<rt>しず</rt></ruby>かそうです"],
+  ["にぎやか", "にぎやかそうです"],
+  ["<ruby>便利<rt>べんり</rt></ruby>", "<ruby>便利<rt>べんり</rt></ruby>そうです"],
+  ["<ruby>元気<rt>げんき</rt></ruby>", "<ruby>元気<rt>げんき</rt></ruby>そうです"],
+  ["<ruby>好<rt>す</rt></ruby>き", "<ruby>好<rt>す</rt></ruby>きそうです"],
+  ["きらい", "きらいそうです"],
+  ["<ruby>上手<rt>じょうず</rt></ruby>", "<ruby>上手<rt>じょうず</rt></ruby>そうです"],
+  ["<ruby>下手<rt>へた</rt></ruby>", "<ruby>下手<rt>へた</rt></ruby>そうです"],
+  ["<ruby>有名<rt>ゆうめい</rt></ruby>", "<ruby>有名<rt>ゆうめい</rt></ruby>そうです"]
+];
+
+
 const nounBaseData = [
   ["<ruby>雨<rt>あめ</rt></ruby>", "<ruby>雨<rt>あめ</rt></ruby>で", "<ruby>雨<rt>あめ</rt></ruby>でした", "<ruby>雨<rt>あめ</rt></ruby>じゃないです", "<ruby>雨<rt>あめ</rt></ruby>じゃなかったです"],
   ["テスト", "テストで", "テストでした", "テストじゃないです", "テストじゃなかったです"],
@@ -1229,6 +1360,159 @@ const tokiVerbData = [
   ["<ruby>会<rt>あ</rt></ruby>いました", "<ruby>会<rt>あ</rt></ruby>ったとき"]
 ];
 
+
+const QUESTION_STORAGE_KEY = "katsuyouQuestionMarks_v1";
+let currentTableType = "";
+
+function safeParseQuestionStore() {
+  try {
+    const raw = localStorage.getItem(QUESTION_STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function saveQuestionStore(items) {
+  try {
+    localStorage.setItem(QUESTION_STORAGE_KEY, JSON.stringify(items));
+  } catch (e) {
+    // localStorage が使えない環境では保存しない
+  }
+}
+
+function stripHtmlForKey(html) {
+  const tmp = document.createElement("div");
+  tmp.innerHTML = html || "";
+  return (tmp.textContent || "").replace(/\s+/g, "").trim();
+}
+
+function getQuestionInfo(button) {
+  const row = button.closest("tr");
+  if (!row) return null;
+  const cells = row.querySelectorAll("td");
+  if (cells.length < 2) return null;
+
+  const leftEl = cells[0].querySelector(".word-text") || cells[0];
+  const rightEl = cells[1].querySelector(".answer-text") || cells[1];
+  const leftHtml = (leftEl.innerHTML || "").trim();
+  const rightHtml = (rightEl.innerHTML || "").trim();
+  const leftText = stripHtmlForKey(leftHtml);
+  const rightText = stripHtmlForKey(rightHtml);
+  if (!leftText || !rightText) return null;
+
+  const type = currentTableType || document.getElementById("tableTitle")?.textContent || "";
+  const key = `${type}::${leftText}::${rightText}`;
+  return { key, type, leftHtml, rightHtml, leftText, rightText };
+}
+
+function restoreQuestionMarks() {
+  const savedKeys = new Set(safeParseQuestionStore().map(item => item.key));
+  document.querySelectorAll(".question-box").forEach(button => {
+    const info = getQuestionInfo(button);
+    if (!info) return;
+    button.dataset.questionKey = info.key;
+    button.classList.toggle("active", savedKeys.has(info.key));
+  });
+}
+
+function memoRectsOverlap(a, b, gap = 8) {
+  return !(a.right + gap < b.left || a.left - gap > b.right || a.bottom + gap < b.top || a.top - gap > b.bottom);
+}
+
+function getForbiddenMemoRects() {
+  const selectors = [".button-grid", ".page-title", ".page-nav:not(.disabled)", ".start-notice-overlay"];
+  return selectors.flatMap(selector => Array.from(document.querySelectorAll(selector)))
+    .filter(el => el && el.offsetParent !== null && getComputedStyle(el).display !== "none")
+    .map(el => {
+      const r = el.getBoundingClientRect();
+      return { left: r.left - 8, top: r.top - 8, right: r.right + 8, bottom: r.bottom + 8 };
+    });
+}
+
+function seededRandom(seed) {
+  let h = 2166136261;
+  for (let i = 0; i < seed.length; i++) {
+    h ^= seed.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return function() {
+    h += 0x6D2B79F5;
+    let t = h;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function renderQuestionMemoLayer() {
+  const layer = document.getElementById("questionMemoLayer");
+  const menu = document.getElementById("menuScreen");
+  if (!layer || !menu || menu.style.display === "none") return;
+
+  const items = safeParseQuestionStore();
+  layer.innerHTML = "";
+  if (!items.length) return;
+
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const isSmall = vw <= 420;
+  const cardW = isSmall ? 96 : 124;
+  const cardH = isSmall ? 30 : 36;
+  const margin = 8;
+  const forbidden = getForbiddenMemoRects();
+  const placed = [];
+
+  items.forEach((item, index) => {
+    const rand = seededRandom(`${item.key}:${index}`);
+    const rotation = rand() < 0.5 ? -2 : 2;
+    let pos = null;
+
+    for (let i = 0; i < 240; i++) {
+      const side = i % 2 === 0 ? "left" : "right";
+      const zoneW = Math.max(cardW + margin * 2, vw * 0.30);
+      const minX = side === "left" ? margin : Math.max(margin, vw - zoneW + margin);
+      const maxX = side === "left" ? Math.min(vw - cardW - margin, zoneW - cardW - margin) : vw - cardW - margin;
+      const x = minX + rand() * Math.max(1, maxX - minX);
+      const y = margin + rand() * Math.max(1, vh - cardH - margin * 2);
+      const rect = { left: x, top: y, right: x + cardW, bottom: y + cardH };
+      const hitsForbidden = forbidden.some(f => memoRectsOverlap(rect, f, 4));
+      const hitsPlaced = placed.some(p => memoRectsOverlap(rect, p, 7));
+      if (!hitsForbidden && !hitsPlaced) {
+        pos = { x, y, rect };
+        break;
+      }
+    }
+
+    if (!pos) {
+      const columns = Math.max(1, Math.floor(vw / (cardW + 10)));
+      const x = margin + (index % columns) * (cardW + 10);
+      const y = margin + Math.floor(index / columns) * (cardH + 10);
+      const rect = { left: x, top: y, right: x + cardW, bottom: y + cardH };
+      const unusable = forbidden.some(f => memoRectsOverlap(rect, f, 4));
+      if (unusable) return;
+      pos = { x, y, rect };
+    }
+
+    placed.push(pos.rect);
+
+    const card = document.createElement("div");
+    card.className = "question-memo-card";
+    card.style.left = `${pos.x}px`;
+    card.style.top = `${pos.y}px`;
+    card.style.transform = `rotate(${rotation}deg)`;
+    card.innerHTML = `
+      <span class="memo-pair">
+        <span class="memo-left">${item.leftHtml || ""}</span>
+        <span class="memo-arrow">→</span>
+        <span class="memo-right">${item.rightHtml || ""}</span>
+      </span>
+    `;
+    layer.appendChild(card);
+  });
+}
+
 let maskAnimationId = null;
 let tableVisible = false;
 let masuSwapped = false;
@@ -1241,6 +1525,7 @@ function showTable(type) {
   document.getElementById("menuScreen").style.display = "none";
   document.getElementById("tableScreen").style.display = "block";
   document.getElementById("tableTitle").textContent = type;
+  currentTableType = type;
 
   tableVisible = true;
 
@@ -1263,6 +1548,8 @@ function showTable(type) {
     makeMashouTable();
   } else if (type === "てもいいですか" || type === "Vてもいいですか") {
     makeTemoiiTable();
+  } else if (type === "Vないでください" || type === "ないでください") {
+    makeNaideKudasaiTable();
   } else if (type === "ています" || type === "Vています") {
     makeTeimasuTable();
   } else if (type === "たり" || type === "Vたり") {
@@ -1291,6 +1578,8 @@ function showTable(type) {
     makeAdjectiveKunaiTable();
   } else if (type === "形-なかった" || type === "形-なかった") {
     makeAdjectiveKunakattaTable();
+  } else if (type === "形-そうです") {
+    makeAdjectiveSouTable();
   } else if (type === "とき") {
     makeTokiTable();
   } else {
@@ -1300,10 +1589,12 @@ function showTable(type) {
   window.scrollTo(0, 0);
 
   requestAnimationFrame(() => {
+    restoreQuestionMarks();
     fitTableTextOneLine();
     adjustScrollExtraHeight();
     updateSheetHiddenText();
     requestAnimationFrame(() => {
+      restoreQuestionMarks();
       fitTableTextOneLine();
       adjustScrollExtraHeight();
       updateSheetHiddenText();
@@ -1321,6 +1612,7 @@ function backMenu() {
   document.getElementById("tableScreen").style.display = "none";
   document.getElementById("menuScreen").style.display = "block";
   document.body.classList.add("menu-mode");
+  requestAnimationFrame(renderQuestionMemoLayer);
 
   window.scrollTo(0, 0);
 }
@@ -1375,6 +1667,7 @@ function toggleMasuSwap() {
   makeMasuTable();
 
   requestAnimationFrame(() => {
+    restoreQuestionMarks();
     fitTableTextOneLine();
     adjustScrollExtraHeight();
     updateSheetHiddenText();
@@ -1739,6 +2032,57 @@ function makeAdjectiveKunaiTable() {
 
 function makeAdjectiveKunakattaTable() {
   makeAdjectiveTable("形-なかった", 4);
+}
+
+function makeAdjectiveSouTable() {
+  let html = `
+    <table>
+      <tr>
+        <th>形容詞・辞書形</th>
+        <th>形-そうです</th>
+      </tr>
+
+      <tr class="group-row">
+        <td colspan="2">い形容詞</td>
+      </tr>
+  `;
+
+  adjectiveSouIBaseData.forEach(row => {
+    html += `
+      <tr>
+        <td>${makeWordCell(row[0])}</td>
+        <td><span class="answer-text">${row[1]}</span></td>
+      </tr>
+    `;
+  });
+
+  html += `
+      <tr class="group-row">
+        <td colspan="2">な形容詞</td>
+      </tr>
+  `;
+
+  adjectiveSouNaBaseData.forEach(row => {
+    html += `
+      <tr>
+        <td>${makeWordCell(row[0])}</td>
+        <td><span class="answer-text">${row[1]}</span></td>
+      </tr>
+    `;
+  });
+
+  html += `
+    </table>
+    <div class="scroll-extra-y"></div>
+  `;
+
+  document.getElementById("tableArea").innerHTML = html;
+
+  requestAnimationFrame(() => {
+    fitTableTextOneLine();
+    adjustScrollExtraHeight();
+    updateSheetHiddenText();
+  });
 }
 
 
@@ -2280,6 +2624,39 @@ const vTemoii30 = [
   ["ここへ <ruby>来<rt>く</rt></ruby>る", "ここへ <ruby>来<rt>き</rt></ruby>てもいいですか", ""]
 ];
 
+const vNaideKudasai30 = [
+  ["このペンを <ruby>使<rt>つか</rt></ruby>う", "このペンを <ruby>使<rt>つか</rt></ruby>わないでください", "te-utsuru"],
+  ["ここで <ruby>待<rt>ま</rt></ruby>つ", "ここで <ruby>待<rt>ま</rt></ruby>たないでください", "te-utsuru"],
+  ["<ruby>写真<rt>しゃしん</rt></ruby>を <ruby>撮<rt>と</rt></ruby>る", "<ruby>写真<rt>しゃしん</rt></ruby>を <ruby>撮<rt>と</rt></ruby>らないでください", "te-utsuru"],
+  ["ここに <ruby>座<rt>すわ</rt></ruby>る", "ここに <ruby>座<rt>すわ</rt></ruby>らないでください", "te-utsuru"],
+  ["<ruby>部屋<rt>へや</rt></ruby>に <ruby>入<rt>はい</rt></ruby>る", "<ruby>部屋<rt>へや</rt></ruby>に <ruby>入<rt>はい</rt></ruby>らないでください", "te-utsuru"],
+  ["<ruby>友<rt>とも</rt></ruby>だちに <ruby>会<rt>あ</rt></ruby>う", "<ruby>友<rt>とも</rt></ruby>だちに <ruby>会<rt>あ</rt></ruby>わないでください", "te-utsuru"],
+  ["<ruby>水<rt>みず</rt></ruby>を <ruby>飲<rt>の</rt></ruby>む", "<ruby>水<rt>みず</rt></ruby>を <ruby>飲<rt>の</rt></ruby>まないでください", "te-mubunu"],
+  ["<ruby>本<rt>ほん</rt></ruby>を <ruby>読<rt>よ</rt></ruby>む", "<ruby>本<rt>ほん</rt></ruby>を <ruby>読<rt>よ</rt></ruby>まないでください", "te-mubunu"],
+  ["<ruby>友<rt>とも</rt></ruby>だちを <ruby>呼<rt>よ</rt></ruby>ぶ", "<ruby>友<rt>とも</rt></ruby>だちを <ruby>呼<rt>よ</rt></ruby>ばないでください", "te-mubunu"],
+  ["<ruby>少<rt>すこ</rt></ruby>し <ruby>休<rt>やす</rt></ruby>む", "<ruby>少<rt>すこ</rt></ruby>し <ruby>休<rt>やす</rt></ruby>まないでください", "te-mubunu"],
+  ["<ruby>服<rt>ふく</rt></ruby>を <ruby>選<rt>えら</rt></ruby>ぶ", "<ruby>服<rt>ふく</rt></ruby>を <ruby>選<rt>えら</rt></ruby>ばないでください", "te-mubunu"],
+  ["ここに <ruby>書<rt>か</rt></ruby>く", "ここに <ruby>書<rt>か</rt></ruby>かないでください", "te-ku"],
+  ["<ruby>音楽<rt>おんがく</rt></ruby>を <ruby>聞<rt>き</rt></ruby>く", "<ruby>音楽<rt>おんがく</rt></ruby>を <ruby>聞<rt>き</rt></ruby>かないでください", "te-ku"],
+  ["<ruby>教室<rt>きょうしつ</rt></ruby>で <ruby>働<rt>はたら</rt></ruby>く", "<ruby>教室<rt>きょうしつ</rt></ruby>で <ruby>働<rt>はたら</rt></ruby>かないでください", "te-ku"],
+  ["ここに <ruby>置<rt>お</rt></ruby>く", "ここに <ruby>置<rt>お</rt></ruby>かないでください", "te-ku"],
+  ["ここで <ruby>泳<rt>およ</rt></ruby>ぐ", "ここで <ruby>泳<rt>およ</rt></ruby>がないでください", "te-gu"],
+  ["<ruby>先生<rt>せんせい</rt></ruby>に <ruby>話<rt>はな</rt></ruby>す", "<ruby>先生<rt>せんせい</rt></ruby>に <ruby>話<rt>はな</rt></ruby>さないでください", "te-su"],
+  ["<ruby>電気<rt>でんき</rt></ruby>を <ruby>消<rt>け</rt></ruby>す", "<ruby>電気<rt>でんき</rt></ruby>を <ruby>消<rt>け</rt></ruby>さないでください", "te-su"],
+  ["<ruby>宿題<rt>しゅくだい</rt></ruby>を <ruby>出<rt>だ</rt></ruby>す", "<ruby>宿題<rt>しゅくだい</rt></ruby>を <ruby>出<rt>だ</rt></ruby>さないでください", "te-su"],
+  ["<ruby>机<rt>つくえ</rt></ruby>を <ruby>動<rt>うご</rt></ruby>かす", "<ruby>机<rt>つくえ</rt></ruby>を <ruby>動<rt>うご</rt></ruby>かさないでください", "te-su"],
+  ["トイレに <ruby>行<rt>い</rt></ruby>く", "トイレに <ruby>行<rt>い</rt></ruby>かないでください", "te-iku"],
+  ["これを <ruby>食<rt>た</rt></ruby>べる", "これを <ruby>食<rt>た</rt></ruby>べないでください", "te-ichidan"],
+  ["この<ruby>本<rt>ほん</rt></ruby>を <ruby>見<rt>み</rt></ruby>る", "この<ruby>本<rt>ほん</rt></ruby>を <ruby>見<rt>み</rt></ruby>ないでください", "te-ichidan"],
+  ["<ruby>朝<rt>あさ</rt></ruby> <ruby>寝<rt>ね</rt></ruby>る", "<ruby>朝<rt>あさ</rt></ruby> <ruby>寝<rt>ね</rt></ruby>ないでください", "te-ichidan"],
+  ["<ruby>本<rt>ほん</rt></ruby>を <ruby>借<rt>か</rt></ruby>りる", "<ruby>本<rt>ほん</rt></ruby>を <ruby>借<rt>か</rt></ruby>りないでください", "te-ichidan"],
+  ["<ruby>窓<rt>まど</rt></ruby>を <ruby>開<rt>あ</rt></ruby>ける", "<ruby>窓<rt>まど</rt></ruby>を <ruby>開<rt>あ</rt></ruby>けないでください", "te-ichidan"],
+  ["<ruby>ドア<rt>どあ</rt></ruby>を <ruby>閉<rt>し</rt></ruby>める", "<ruby>ドア<rt>どあ</rt></ruby>を <ruby>閉<rt>し</rt></ruby>めないでください", "te-ichidan"],
+  ["<ruby>勉強<rt>べんきょう</rt></ruby>する", "<ruby>勉強<rt>べんきょう</rt></ruby>しないでください", ""],
+  ["<ruby>電話<rt>でんわ</rt></ruby>する", "<ruby>電話<rt>でんわ</rt></ruby>しないでください", ""],
+  ["ここへ <ruby>来<rt>く</rt></ruby>る", "ここへ <ruby>来<rt>こ</rt></ruby>ないでください", ""]
+];
+
 const vTeimasu30 = [
   ["<ruby>写真<rt>しゃしん</rt></ruby>を <ruby>撮<rt>と</rt></ruby>る", "<ruby>写真<rt>しゃしん</rt></ruby>を <ruby>撮<rt>と</rt></ruby>っています", "te-utsuru"],
   ["ここで <ruby>待<rt>ま</rt></ruby>つ", "ここで <ruby>待<rt>ま</rt></ruby>っています", "te-utsuru"],
@@ -2518,6 +2895,7 @@ function makeTaiTable() { makeFlat30Table("Vたい", "Vたいです", vTai30, "�
 function makeMasenkaTable() { makeFlat30Table("Vませんか", "Vませんか", vMasenka30, "ヒント"); }
 function makeMashouTable() { makeFlat30Table("Vましょう", "Vましょう", vMashou30, "ヒント"); }
 function makeTemoiiTable() { makeFlat30Table("Vてもいいですか", "Vてもいいですか", vTemoii30, "ヒント"); }
+function makeNaideKudasaiTable() { makeFlat30Table("Vないでください", "Vないでください", vNaideKudasai30, "ヒント"); }
 function makeTeimasuTable() { makeFlat30Table("Vています", "Vています", vTeimasu30, "ヒント"); }
 function makeTariTable() { makeFlat30Table("Vたり", "Vたり", vTari30, "ヒント"); }
 function makeTaraTable() { makeTaraPartialColorTable("Vたら", "Vたら", vTara30); }
@@ -2555,7 +2933,25 @@ function showPlaceholder(type) {
 }
 
 function toggleQuestionMark(button) {
-  button.classList.toggle("active");
+  const info = getQuestionInfo(button);
+  if (!info) {
+    button.classList.toggle("active");
+    return;
+  }
+
+  const items = safeParseQuestionStore();
+  const index = items.findIndex(item => item.key === info.key);
+
+  if (index >= 0) {
+    items.splice(index, 1);
+    button.classList.remove("active");
+  } else {
+    items.push(info);
+    button.classList.add("active");
+  }
+
+  saveQuestionStore(items);
+  renderQuestionMemoLayer();
 }
 
 
@@ -2817,6 +3213,7 @@ window.addEventListener("resize", () => {
     fitTableTextOneLine();
     adjustScrollExtraHeight();
     updateSheetHiddenText();
+    renderQuestionMemoLayer();
   });
 });
 
@@ -2825,11 +3222,13 @@ window.addEventListener("orientationchange", () => {
     fitTableTextOneLine();
     adjustScrollExtraHeight();
     updateSheetHiddenText();
+    renderQuestionMemoLayer();
   });
 });
 
 window.addEventListener("load", () => {
   updateMenuPage();
+  renderQuestionMemoLayer();
   requestAnimationFrame(() => {
     fitTableTextOneLine();
     adjustScrollExtraHeight();
@@ -2841,6 +3240,7 @@ window.addEventListener("resize", () => {
   fitTableTextOneLine();
   adjustScrollExtraHeight();
   updateSheetHiddenText();
+  renderQuestionMemoLayer();
 });
 
 
