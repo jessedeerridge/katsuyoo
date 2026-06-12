@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
 
-<title>活用練習 v27</title>
+<title>活用練習 v28</title>
 
 <style>
   @import url("https://fonts.googleapis.com/css2?family=Kosugi+Maru&family=Ma+Shan+Zheng&family=ZCOOL+KuaiLe&display=swap");
@@ -636,18 +636,18 @@
     inset: 0;
     z-index: 1;
     pointer-events: none;
-    overflow: visible;
+    overflow: hidden;
   }
 
   .question-memo-card {
     position: fixed;
     width: auto;
-    min-width: 150px;
-    max-width: none;
-    min-height: 42px;
-    padding: 6px 10px;
+    min-width: 170px;
+    max-width: calc(100vw - 16px);
+    min-height: 38px;
+    padding: 6px 9px;
     border-radius: 12px;
-    background: rgba(255, 255, 255, 0.88);
+    background: rgba(255, 255, 255, 0.86);
     border: 1.5px dashed rgba(255, 111, 174, 0.62);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.10);
     color: #555;
@@ -659,13 +659,61 @@
     word-break: keep-all;
     white-space: nowrap;
     overflow: visible;
+    pointer-events: auto;
+  }
+
+  .question-memo-card .memo-show-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 5px;
+    padding: 3px 10px;
+    border: none;
+    border-radius: 999px;
+    background: #ff8ac2;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 900;
+    line-height: 1.1;
+    box-shadow: 0 2px 0 #e15d9d;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+
+  .question-memo-card .memo-show-btn:active {
+    transform: translateY(1px);
+    box-shadow: 0 1px 0 #e15d9d;
+  }
+
+  .memo-empty-toast {
+    position: fixed;
+    left: 50%;
+    top: 22px;
+    transform: translateX(-50%);
+    z-index: 10000;
+    padding: 10px 18px;
+    border-radius: 999px;
+    background: rgba(30, 30, 30, 0.88);
+    color: white;
+    font-size: 15px;
+    font-weight: 900;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.20);
+    pointer-events: none;
+    animation: emptyToastFade 1.25s ease both;
+  }
+
+  @keyframes emptyToastFade {
+    0% { opacity: 0; transform: translate(-50%, -8px); }
+    14% { opacity: 1; transform: translate(-50%, 0); }
+    82% { opacity: 1; transform: translate(-50%, 0); }
+    100% { opacity: 0; transform: translate(-50%, -8px); }
   }
 
   .question-memo-card .memo-type {
-    display: block;
-    margin-bottom: 3px;
+    display: none;
+    margin-bottom: 2px;
     color: #ff6fae;
-    font-size: 11px;
+    font-size: 9px;
     line-height: 1;
   }
 
@@ -673,19 +721,15 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 4px;
+    gap: 3px;
     min-width: 0;
-    width: max-content;
-    margin: 0 auto;
-    overflow: visible;
   }
 
   .question-memo-card .memo-left,
   .question-memo-card .memo-right {
     display: block;
-    max-width: none;
-    min-width: max-content;
-    overflow: visible;
+    max-width: 54px;
+    overflow: hidden;
     text-overflow: clip;
   }
 
@@ -707,23 +751,26 @@
 
   @media (max-width: 420px) {
     .question-memo-card {
-      width: auto;
-      min-width: 132px;
-      min-height: 38px;
-      padding: 5px 8px;
+      width: 96px;
+      min-height: 30px;
+      padding: 4px 5px;
       border-radius: 10px;
-      font-size: 10px;
+      font-size: 8px;
     }
 
     .question-memo-card .memo-type {
-      display: block;
-      font-size: 9px;
+      font-size: 7px;
     }
 
     .question-memo-card .memo-left,
     .question-memo-card .memo-right {
-      max-width: none;
-      overflow: visible;
+      max-width: 42px;
+    }
+
+    .question-memo-card .memo-show-btn {
+      margin-top: 3px;
+      padding: 2px 8px;
+      font-size: 8px;
     }
   }
 
@@ -857,19 +904,19 @@
       <button class="menu-btn" onclick="showTable('形-て')">形-て</button>
       <button class="menu-btn" onclick="showTable('形-た')">形-た</button>
       <button class="menu-btn" onclick="showTable('形-ない')">形-ない</button>
+      <button class="menu-btn" onclick="showTable('形-なかった')">形-なかった</button>
       <button class="menu-btn" onclick="showTable('とき')">とき</button>
     </div>
 
     <div class="menu-page" data-page="1">
-      <button class="menu-btn" onclick="showTable('形-なかった')">形-なかった</button>
-      
+      <button class="menu-btn" onclick="showTable('形-なる')">形-なる</button>
       <button class="menu-btn" onclick="showTable('Vたいです')">Vたいです</button>
+      <button class="menu-btn" onclick="showTable('Vてください')">Vてください</button>
       <button class="menu-btn" onclick="showTable('Vています')">Vています</button>
       <button class="menu-btn" onclick="showTable('Vてきます')">Vてきます</button>
       <button class="menu-btn" onclick="showTable('Vてもいいですか')">Vてもいいですか</button>
-      <button class="menu-btn" onclick="showTable('Vてください')">Vてください</button>
       <button class="menu-btn" onclick="showTable('Vないでください')">Vないでください</button>
-      <button class="menu-btn" onclick="showTable('Vたことがあります')">Vたことがあります</button>
+      <button class="menu-btn" onclick="showTable('Vたことがありますか')">Vたことがありますか</button>
       <button class="menu-btn" onclick="showTable('Vたり')">Vたり</button>
       <button class="menu-btn" onclick="showTable('Vたら')">Vたら</button>
     </div>
@@ -1374,11 +1421,50 @@ const tokiVerbData = [
 const QUESTION_STORAGE_KEY = "katsuyouQuestionMarks_v1";
 let currentTableType = "";
 
+function isValidQuestionItem(item) {
+  if (!item || typeof item !== "object") return false;
+  if (typeof item.key !== "string" || !item.key.trim()) return false;
+
+  const leftText = item.leftText || stripHtmlForKey(item.leftHtml || "");
+  const rightText = item.rightText || stripHtmlForKey(item.rightHtml || "");
+  return !!(leftText && rightText);
+}
+
+function normalizeQuestionItem(item) {
+  const leftHtml = item.leftHtml || item.leftText || "";
+  const rightHtml = item.rightHtml || item.rightText || "";
+  const leftText = item.leftText || stripHtmlForKey(leftHtml);
+  const rightText = item.rightText || stripHtmlForKey(rightHtml);
+  const type = item.type || "";
+  const key = item.key || `${type}::${leftText}::${rightText}`;
+  return { key, type, leftHtml, rightHtml, leftText, rightText };
+}
+
 function safeParseQuestionStore() {
   try {
     const raw = localStorage.getItem(QUESTION_STORAGE_KEY);
     const parsed = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed) ? parsed : [];
+    if (!Array.isArray(parsed)) return [];
+
+    const cleaned = [];
+    const usedKeys = new Set();
+
+    parsed.forEach(item => {
+      if (!item || typeof item !== "object") return;
+      const normalized = normalizeQuestionItem(item);
+      if (!isValidQuestionItem(normalized)) return;
+      if (usedKeys.has(normalized.key)) return;
+      usedKeys.add(normalized.key);
+      cleaned.push(normalized);
+    });
+
+    // 以前のバージョンで壊れたデータ・空データが残っていると、
+    // 見た目は0個なのに「空きがありません」になるので、ここで掃除する。
+    if (cleaned.length !== parsed.length) {
+      saveQuestionStore(cleaned);
+    }
+
+    return cleaned;
   } catch (e) {
     return [];
   }
@@ -1386,7 +1472,10 @@ function safeParseQuestionStore() {
 
 function saveQuestionStore(items) {
   try {
-    localStorage.setItem(QUESTION_STORAGE_KEY, JSON.stringify(items));
+    const cleaned = Array.isArray(items)
+      ? items.map(normalizeQuestionItem).filter(isValidQuestionItem)
+      : [];
+    localStorage.setItem(QUESTION_STORAGE_KEY, JSON.stringify(cleaned));
   } catch (e) {
     // localStorage が使えない環境では保存しない
   }
@@ -1462,7 +1551,7 @@ function typeNeedsFocusOnly(type, leftText) {
   if (leftText && (leftText.includes("・") || leftText.includes("、"))) return false;
   return [
     "Vませんか", "Vましょう", "Vてもいいですか", "Vてください",
-    "Vないでください", "Vています", "Vてきます", "Vたことがあります"
+    "Vないでください", "Vています", "Vてきます", "Vたことがあります", "Vたことがありますか", "形-なる"
   ].some(name => t === name || t.includes(name));
 }
 
@@ -1476,7 +1565,7 @@ function extractLastCoreHtml(html) {
   }
 
   const text = stripHtmlForKey(source);
-  const m = text.match(/[ぁ-んァ-ン一-龥々ー]+(?:する|します|した|して|できる|できます|ないでください|てください|ています|てきます|ませんか|ましょう|たいです|たことがあります|てもいいですか|ない|ます|ました|かったです|くないです|くなかったです|です)?$/);
+  const m = text.match(/[ぁ-んァ-ン一-龥々ー]+(?:する|します|した|して|できる|できます|ないでください|てください|ています|てきます|ませんか|ましょう|たいです|たことがありますか|たことがあります|てもいいですか|ない|ます|ました|かったです|くないです|くなかったです|くなります|になります|です)?$/);
   return m ? m[0] : source;
 }
 
@@ -1495,31 +1584,77 @@ function getMemoDisplayItem(item) {
   return { type, leftHtml, rightHtml, leftText, rightText };
 }
 
-function countMemoUnits(text) {
-  const s = String(text || "").replace(/\s+/g, "");
-  let units = 0;
-  for (const ch of s) {
-    if (/^[\x00-\x7F]$/.test(ch)) units += 0.62;
-    else if (/^[ぁ-んァ-ン一-龥々ー、。・！？]$/.test(ch)) units += 1;
-    else units += 0.85;
+function getMemoLayout(items) {
+  items = Array.isArray(items) ? items.filter(isValidQuestionItem) : [];
+  if (!items.length) return [];
+
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const isSmall = vw <= 420;
+  const cardW = isSmall ? 158 : 220;
+  const cardH = isSmall ? 58 : 68;
+  const margin = 8;
+  const forbidden = getForbiddenMemoRects();
+  const placed = [];
+  const positions = [];
+
+  for (let index = 0; index < items.length; index++) {
+    const item = items[index];
+    const rand = seededRandom(`${item.key}:${index}`);
+    const rotation = rand() < 0.5 ? -2 : 2;
+    let pos = null;
+
+    for (let i = 0; i < 420; i++) {
+      const side = i % 2 === 0 ? "left" : "right";
+      const zoneW = Math.max(cardW + margin * 2, vw * 0.34);
+      const minX = side === "left" ? margin : Math.max(margin, vw - zoneW + margin);
+      const maxX = side === "left" ? Math.min(vw - cardW - margin, zoneW - cardW - margin) : vw - cardW - margin;
+      const x = minX + rand() * Math.max(1, maxX - minX);
+      const y = margin + rand() * Math.max(1, vh - cardH - margin * 2);
+      const rect = { left: x, top: y, right: x + cardW, bottom: y + cardH };
+      const hitsForbidden = forbidden.some(f => memoRectsOverlap(rect, f, 5));
+      const hitsPlaced = placed.some(p => memoRectsOverlap(rect, p, 9));
+      if (!hitsForbidden && !hitsPlaced) {
+        pos = { x, y, rotation, rect };
+        break;
+      }
+    }
+
+    if (!pos) return null;
+    placed.push(pos.rect);
+    positions.push(pos);
   }
-  return Math.max(1, units);
+
+  return positions;
 }
 
-function estimateMemoCardWidth(displayItem, viewportWidth) {
-  const left = stripHtmlForKey(displayItem.leftHtml || displayItem.leftText || "");
-  const right = stripHtmlForKey(displayItem.rightHtml || displayItem.rightText || "");
-  const type = displayItem.type || "";
-  const isSmall = viewportWidth <= 420;
-  const pairFont = isSmall ? 10 : 12;
-  const typeFont = isSmall ? 9 : 11;
-  const pairUnits = countMemoUnits(left) + countMemoUnits(right) + 1.8;
-  const typeUnits = countMemoUnits(type);
-  const pairWidth = pairUnits * pairFont + (isSmall ? 28 : 34);
-  const typeWidth = typeUnits * typeFont + (isSmall ? 22 : 28);
-  const minW = isSmall ? 132 : 150;
-  const maxW = Math.max(minW, viewportWidth - 16);
-  return Math.ceil(Math.min(maxW, Math.max(minW, pairWidth, typeWidth)));
+function canPlaceQuestionMemo(items) {
+  items = Array.isArray(items) ? items.filter(isValidQuestionItem) : [];
+  if (!items.length) return true;
+
+  const menu = document.getElementById("menuScreen");
+  const oldDisplay = menu ? menu.style.display : "";
+  const oldMode = document.body.classList.contains("menu-mode");
+  if (menu) menu.style.display = "block";
+  document.body.classList.add("menu-mode");
+  const positions = getMemoLayout(items);
+  if (menu) menu.style.display = oldDisplay;
+  if (!oldMode) document.body.classList.remove("menu-mode");
+  return Array.isArray(positions);
+}
+
+function showEmptyMemoToast() {
+  const old = document.querySelector(".memo-empty-toast");
+  if (old) old.remove();
+  const toast = document.createElement("div");
+  toast.className = "memo-empty-toast";
+  toast.textContent = "空きがありません";
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 1300);
+}
+
+function escapeForAttr(value) {
+  return String(value || "").replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
 function renderQuestionMemoLayer() {
@@ -1531,63 +1666,36 @@ function renderQuestionMemoLayer() {
   layer.innerHTML = "";
   if (!items.length) return;
 
-  const vw = window.innerWidth;
-  const vh = window.innerHeight;
-  const isSmall = vw <= 420;
-  const margin = 8;
-  const forbidden = getForbiddenMemoRects();
-  const placed = [];
+  const positions = getMemoLayout(items);
+  if (!positions) {
+    // 画面サイズ変更などで全部は置けない場合でも、保存データは壊さない。
+    // 次に？を押した時に「0個扱い」にならないよう、ここではトーストも出さない。
+    return;
+  }
 
   items.forEach((item, index) => {
+    const pos = positions[index];
     const displayItem = getMemoDisplayItem(item);
-    const cardW = estimateMemoCardWidth(displayItem, vw);
-    const cardH = isSmall ? 48 : 54;
-    const rand = seededRandom(`${item.key}:${index}`);
-    const rotation = rand() < 0.5 ? -2 : 2;
-    let pos = null;
-
-    for (let i = 0; i < 260; i++) {
-      const side = i % 2 === 0 ? "left" : "right";
-      const zoneW = Math.max(cardW + margin * 2, vw * 0.34);
-      const minX = side === "left" ? margin : Math.max(margin, vw - zoneW + margin);
-      const maxX = side === "left" ? Math.min(vw - cardW - margin, zoneW - cardW - margin) : vw - cardW - margin;
-      const x = minX + rand() * Math.max(1, maxX - minX);
-      const y = margin + rand() * Math.max(1, vh - cardH - margin * 2);
-      const rect = { left: x, top: y, right: x + cardW, bottom: y + cardH };
-      const hitsForbidden = forbidden.some(f => memoRectsOverlap(rect, f, 4));
-      const hitsPlaced = placed.some(p => memoRectsOverlap(rect, p, 7));
-      if (!hitsForbidden && !hitsPlaced) {
-        pos = { x, y, rect };
-        break;
-      }
-    }
-
-    if (!pos) {
-      const columns = Math.max(1, Math.floor(vw / (cardW + 10)));
-      const x = Math.min(vw - cardW - margin, margin + (index % columns) * (cardW + 10));
-      const y = margin + Math.floor(index / columns) * (cardH + 10);
-      const rect = { left: x, top: y, right: x + cardW, bottom: y + cardH };
-      const unusable = forbidden.some(f => memoRectsOverlap(rect, f, 4));
-      if (unusable) return;
-      pos = { x, y, rect };
-    }
-
-    placed.push(pos.rect);
-
     const card = document.createElement("div");
     card.className = "question-memo-card";
     card.style.left = `${pos.x}px`;
     card.style.top = `${pos.y}px`;
-    card.style.width = `${cardW}px`;
-    card.style.transform = `rotate(${rotation}deg)`;
+    card.style.transform = `rotate(${pos.rotation}deg)`;
     card.innerHTML = `
-      <span class="memo-type">${displayItem.type || ""}</span>
       <span class="memo-pair">
         <span class="memo-left">${displayItem.leftHtml || ""}</span>
         <span class="memo-arrow">→</span>
         <span class="memo-right">${displayItem.rightHtml || ""}</span>
       </span>
+      <button type="button" class="memo-show-btn" data-type="${escapeForAttr(item.type)}" data-key="${escapeForAttr(item.key)}">表示</button>
     `;
+    const btn = card.querySelector(".memo-show-btn");
+    if (btn) {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        showTable(btn.dataset.type || item.type, btn.dataset.key || item.key);
+      });
+    }
     layer.appendChild(card);
   });
 }
@@ -1596,7 +1704,7 @@ let maskAnimationId = null;
 let tableVisible = false;
 let masuSwapped = false;
 
-function showTable(type) {
+function showTable(type, focusKey = "") {
   document.body.classList.remove("menu-mode", "sheet-high", "table-start-lowered");
   if (type === "Vて" || type === "Vた") {
     document.body.classList.add("table-start-lowered");
@@ -1637,7 +1745,7 @@ function showTable(type) {
     makeTariTable();
   } else if (type === "たら" || type === "Vたら") {
     makeTaraTable();
-  } else if (type === "Vたことがあります") {
+  } else if (type === "Vたことがあります" || type === "Vたことがありますか") {
     makeTaKotoArimasuTable();
   } else if (type === "Vてきます") {
     makeTekimasuTable();
@@ -1657,8 +1765,10 @@ function showTable(type) {
     makeAdjectiveKattaTable();
   } else if (type === "形くない" || type === "形-ない") {
     makeAdjectiveKunaiTable();
-  } else if (type === "形-なかった" || type === "形-なかった") {
+  } else if (type === "形-なかった") {
     makeAdjectiveKunakattaTable();
+  } else if (type === "形-なる") {
+    makeAdjectiveNaruTable();
   } else if (type === "とき") {
     makeTokiTable();
   } else {
@@ -1677,9 +1787,27 @@ function showTable(type) {
       fitTableTextOneLine();
       adjustScrollExtraHeight();
       updateSheetHiddenText();
+      if (focusKey) scrollToQuestionKey(focusKey);
       startMaskLoop();
     });
   });
+}
+
+function scrollToQuestionKey(key) {
+  if (!key) return;
+  const buttons = Array.from(document.querySelectorAll(".question-box"));
+  const target = buttons.find(button => {
+    const info = getQuestionInfo(button);
+    return info && info.key === key;
+  });
+  if (!target) return;
+  target.classList.add("active");
+  const row = target.closest("tr");
+  if (!row) return;
+  const topBar = document.querySelector(".top-bar");
+  const topOffset = topBar ? topBar.offsetHeight + 2 : 0;
+  const y = row.getBoundingClientRect().top + window.scrollY - topOffset;
+  window.scrollTo({ top: Math.max(0, y), behavior: "auto" });
 }
 
 function backMenu() {
@@ -2029,6 +2157,44 @@ function makePotentialTable() {
   makeGroupTable("V可能", "V可能", potentialGodanData, potentialIchidanData, potentialIrregularData);
 }
 
+
+
+const adjectiveNaru30 = [
+  ["<ruby>新<rt>あたら</rt></ruby>しい", "<ruby>新<rt>あたら</rt></ruby>しくなります"],
+  ["<ruby>古<rt>ふる</rt></ruby>い", "<ruby>古<rt>ふる</rt></ruby>くなります"],
+  ["<ruby>高<rt>たか</rt></ruby>い", "<ruby>高<rt>たか</rt></ruby>くなります"],
+  ["<ruby>安<rt>やす</rt></ruby>い", "<ruby>安<rt>やす</rt></ruby>くなります"],
+  ["<ruby>大<rt>おお</rt></ruby>きい", "<ruby>大<rt>おお</rt></ruby>きくなります"],
+  ["<ruby>小<rt>ちい</rt></ruby>さい", "<ruby>小<rt>ちい</rt></ruby>さくなります"],
+  ["<ruby>暑<rt>あつ</rt></ruby>い", "<ruby>暑<rt>あつ</rt></ruby>くなります"],
+  ["<ruby>寒<rt>さむ</rt></ruby>い", "<ruby>寒<rt>さむ</rt></ruby>くなります"],
+  ["<ruby>熱<rt>あつ</rt></ruby>い", "<ruby>熱<rt>あつ</rt></ruby>くなります"],
+  ["<ruby>冷<rt>つめ</rt></ruby>たい", "<ruby>冷<rt>つめ</rt></ruby>たくなります"],
+  ["<ruby>難<rt>むずか</rt></ruby>しい", "<ruby>難<rt>むずか</rt></ruby>しくなります"],
+  ["やさしい", "やさしくなります"],
+  ["おいしい", "おいしくなります"],
+  ["<ruby>忙<rt>いそが</rt></ruby>しい", "<ruby>忙<rt>いそが</rt></ruby>しくなります"],
+  ["<ruby>楽<rt>たの</rt></ruby>しい", "<ruby>楽<rt>たの</rt></ruby>しくなります"],
+  ["<ruby>早<rt>はや</rt></ruby>い", "<ruby>早<rt>はや</rt></ruby>くなります"],
+  ["<ruby>遅<rt>おそ</rt></ruby>い", "<ruby>遅<rt>おそ</rt></ruby>くなります"],
+  ["<ruby>近<rt>ちか</rt></ruby>い", "<ruby>近<rt>ちか</rt></ruby>くなります"],
+  ["いい", "よくなります"],
+  ["かっこいい", "かっこよくなります"],
+  ["きれい", "きれいになります"],
+  ["<ruby>静<rt>しず</rt></ruby>か", "<ruby>静<rt>しず</rt></ruby>かになります"],
+  ["にぎやか", "にぎやかになります"],
+  ["<ruby>便利<rt>べんり</rt></ruby>", "<ruby>便利<rt>べんり</rt></ruby>になります"],
+  ["<ruby>元気<rt>げんき</rt></ruby>", "<ruby>元気<rt>げんき</rt></ruby>になります"],
+  ["<ruby>上手<rt>じょうず</rt></ruby>", "<ruby>上手<rt>じょうず</rt></ruby>になります"],
+  ["<ruby>下手<rt>へた</rt></ruby>", "<ruby>下手<rt>へた</rt></ruby>になります"],
+  ["<ruby>有名<rt>ゆうめい</rt></ruby>", "<ruby>有名<rt>ゆうめい</rt></ruby>になります"],
+  ["<ruby>簡単<rt>かんたん</rt></ruby>", "<ruby>簡単<rt>かんたん</rt></ruby>になります"],
+  ["たいへん", "たいへんになります"]
+];
+
+function makeAdjectiveNaruTable() {
+  makeFlat30Table("形-なる", "形-なる", adjectiveNaru30, "形容詞・辞書形");
+}
 
 function makeAdjectiveTable(rightTitle, answerIndex) {
   let html = `
@@ -3008,12 +3174,12 @@ function makeTaiTable() { makeFlat30Table("Vたいです", "Vたいです", vTai
 function makeMasenkaTable() { makeFlat30Table("Vませんか", "Vませんか", vMasenka30, "ヒント"); }
 function makeMashouTable() { makeFlat30Table("Vましょう", "Vましょう", vMashou30, "ヒント"); }
 function makeTemoiiTable() { makeFlat30Table("Vてもいいですか", "Vてもいいですか", vTemoii30, "ヒント"); }
-function makeTekudasaiTable() { makeFlatTaggedTable("Vてください", "Vてください", vTekudasai30); }
+function makeTekudasaiTable() { makeFlat30Table("Vてください", "Vてください", vTekudasai30, "ヒント"); }
 function makeNaideKudasaiTable() { makeFlat30Table("Vないでください", "Vないでください", vNaideKudasai30, "ヒント"); }
 function makeTeimasuTable() { makeFlat30Table("Vています", "Vています", vTeimasu30, "ヒント"); }
 function makeTariTable() { makeFlat30Table("Vたり", "Vたり", vTari30, "ヒント"); }
 function makeTaraTable() { makeTaraPartialColorTable("Vたら", "Vたら", vTara30); }
-function makeTaKotoArimasuTable() { makeFlat30Table("Vたことがあります", "Vたことがあります", vTaKotoArimasu30, "ヒント"); }
+function makeTaKotoArimasuTable() { makeFlat30Table("Vたことがありますか", "Vたことがありますか", vTaKotoArimasu30, "ヒント"); }
 function makeTekimasuTable() { makeFlat30Table("Vてきます", "Vてきます", vTekimasu30, "ヒント"); }
 function makeYouTable() { makeFlatTaggedTable("Vよう", "Vよう", vYou30); }
 function makePotentialTable() { makeFlatTaggedTable("可能形", "可能形", vPotential30); }
@@ -3053,6 +3219,8 @@ function toggleQuestionMark(button) {
     return;
   }
 
+  // 見えない壊れた保存データを先に除外する。
+  // これで、実際は0個なのに items.length > 0 になって空き判定へ進む問題を防ぐ。
   const items = safeParseQuestionStore();
   const index = items.findIndex(item => item.key === info.key);
 
@@ -3060,7 +3228,17 @@ function toggleQuestionMark(button) {
     items.splice(index, 1);
     button.classList.remove("active");
   } else {
-    items.push(info);
+    const nextItems = items.concat([normalizeQuestionItem(info)]);
+
+    // 0個の状態では必ず1個目を保存する。
+    // 1個以上ある時だけ、追加後の表示スペースを判定する。
+    if (items.length >= 1 && !canPlaceQuestionMemo(nextItems)) {
+      showEmptyMemoToast();
+      button.classList.remove("active");
+      return;
+    }
+
+    items.push(normalizeQuestionItem(info));
     button.classList.add("active");
   }
 
