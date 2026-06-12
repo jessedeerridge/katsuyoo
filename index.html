@@ -3413,19 +3413,43 @@ function fitTableTextOneLine() {
   if (!table) return;
 
   const maxFont = 18;
-  const minFont = 7;
+  const minTableFont = 13;
+  const minCellFont = 7;
   const wrap = document.querySelector(".table-wrap");
+
+  const shrinkTargets = () => Array.from(table.querySelectorAll(
+    "th, .word-text, .answer-text, .group-row td"
+  )).filter(el => el.offsetParent !== null);
 
   const resetFont = () => {
     table.classList.remove("tight-table");
     table.classList.add("fitting-table");
     table.style.setProperty("--table-font-size", `${maxFont}px`);
     table.dataset.fittedFontSize = String(maxFont);
+    shrinkTargets().forEach(el => {
+      el.style.removeProperty("font-size");
+    });
   };
 
   const targets = () => Array.from(table.querySelectorAll(
     "th, td, .word-text, .answer-text, .group-row td"
   )).filter(el => el.offsetParent !== null);
+
+  const elementOverflows = (el) => {
+    const rect = el.getBoundingClientRect();
+    if (rect.width <= 0 || rect.height <= 0) return false;
+
+    if (el.scrollWidth > el.clientWidth + 0.5) return true;
+    if (el.scrollHeight > el.clientHeight + 1.5 && !el.matches("ruby")) return true;
+
+    const cell = el.closest("td, th");
+    if (cell && el !== cell) {
+      const cellRect = cell.getBoundingClientRect();
+      if (rect.left < cellRect.left - 0.5 || rect.right > cellRect.right + 0.5) return true;
+    }
+
+    return false;
+  };
 
   const isOverflowing = () => {
     const tableRect = table.getBoundingClientRect();
@@ -3433,33 +3457,30 @@ function fitTableTextOneLine() {
 
     if (tableRect.width > wrapRect.width + 0.5) return true;
 
-    return targets().some(el => {
-      const rect = el.getBoundingClientRect();
-      if (rect.width <= 0 || rect.height <= 0) return false;
-
-      if (el.scrollWidth > el.clientWidth + 0.5) return true;
-      if (el.scrollHeight > el.clientHeight + 1.5 && !el.matches("ruby")) return true;
-
-      const cell = el.closest("td, th");
-      if (cell && el !== cell) {
-        const cellRect = cell.getBoundingClientRect();
-        if (rect.left < cellRect.left - 0.5 || rect.right > cellRect.right + 0.5) return true;
-      }
-      return false;
-    });
+    return targets().some(elementOverflows);
   };
 
   resetFont();
 
   let size = maxFont;
-  while (size > minFont && isOverflowing()) {
+  while (size > minTableFont && isOverflowing()) {
     size -= 1;
     table.style.setProperty("--table-font-size", `${size}px`);
   }
 
+  let hasCellShrink = false;
+  shrinkTargets().forEach(el => {
+    let cellSize = size;
+    while (cellSize > minCellFont && elementOverflows(el)) {
+      cellSize -= 1;
+      el.style.setProperty("font-size", `${cellSize}px`, "important");
+      hasCellShrink = true;
+    }
+  });
+
   table.dataset.fittedFontSize = String(size);
   table.classList.remove("fitting-table");
-  table.classList.toggle("tight-table", size < maxFont);
+  table.classList.toggle("tight-table", size < maxFont || hasCellShrink);
 }
 function adjustScrollExtraHeight() {
   const extra = document.querySelector(".scroll-extra-y");
