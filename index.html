@@ -695,6 +695,10 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.10);
   }
 
+  .question-memo-card.memo-roomy {
+    font-size: 15px;
+  }
+
   .memo-empty-toast {
     position: fixed;
     left: 50%;
@@ -750,7 +754,7 @@
   .question-memo-card .memo-arrow {
     flex: 0 0 auto;
     color: #d90000;
-    font-size: 11px;
+    font-size: 0.92em;
     line-height: 1;
     display: inline-flex;
     align-items: center;
@@ -774,6 +778,10 @@
       padding: 4px 0;
       border-radius: 10px;
       font-size: 8px;
+    }
+
+    .question-memo-card.memo-roomy {
+      font-size: 11px;
     }
 
     .question-memo-card .memo-type {
@@ -1593,6 +1601,33 @@ function extractLastCoreHtml(html) {
   return m ? m[0] : source;
 }
 
+function extractTaraLeftHtml(html) {
+  const firstPart = String(html || "").split("・")[0];
+  return extractLastCoreHtml(firstPart);
+}
+
+function extractTaraRightHtml(html) {
+  const source = String(html || "").trim();
+  const marker = "たら、";
+  const markerIndex = source.indexOf(marker);
+  const prefix = markerIndex >= 0 ? source.slice(0, markerIndex + marker.length) : source;
+  const lastRuby = prefix.lastIndexOf("<ruby");
+
+  if (lastRuby >= 0) {
+    return prefix.slice(lastRuby).replace(/^[\s　]+|[\s　]+$/g, "");
+  }
+
+  const text = stripHtmlForKey(prefix.replace(/、?$/, "、"));
+  const particleIndexes = ["が", "を", "へ", "に", "で"].map(particle => text.lastIndexOf(particle));
+  const lastParticleIndex = Math.max(...particleIndexes);
+  if (lastParticleIndex >= 0) {
+    return text.slice(lastParticleIndex + 1);
+  }
+
+  const match = text.match(/[^、・\s　]+たら、$/);
+  return match ? match[0] : prefix;
+}
+
 function getMemoDisplayItem(item) {
   const type = item.type || "";
   const leftText = item.leftText || stripHtmlForKey(item.leftHtml || "");
@@ -1600,7 +1635,10 @@ function getMemoDisplayItem(item) {
   let leftHtml = item.leftHtml || "";
   let rightHtml = item.rightHtml || "";
 
-  if (typeNeedsFocusOnly(type, leftText)) {
+  if (type === "Vたら" || type === "たら") {
+    leftHtml = extractTaraLeftHtml(leftHtml);
+    rightHtml = extractTaraRightHtml(rightHtml);
+  } else if (typeNeedsFocusOnly(type, leftText)) {
     leftHtml = extractLastCoreHtml(leftHtml);
     rightHtml = extractLastCoreHtml(rightHtml);
   }
@@ -1615,11 +1653,11 @@ function getMemoMeasureText(html, fallbackText) {
   return (tmp.textContent || fallbackText || "").replace(/\s+/g, "").trim();
 }
 
-function getMemoTextWidth(item, isSmall) {
+function getMemoTextWidth(item, isSmall, fontBump = 0) {
   const displayItem = getMemoDisplayItem(item);
   const leftText = getMemoMeasureText(displayItem.leftHtml, displayItem.leftText);
   const rightText = getMemoMeasureText(displayItem.rightHtml, displayItem.rightText);
-  const fontSize = isSmall ? 8 : 12;
+  const fontSize = (isSmall ? 8 : 12) + fontBump;
   const font = `700 ${fontSize}px "Hiragino Maru Gothic ProN", "Yu Gothic", sans-serif`;
 
   if (!getMemoTextWidth.canvas) {
@@ -1668,10 +1706,14 @@ function getMemoLayout(items) {
   const baseCardW = Math.floor((vw - margin * 2 - gap * (columns - 1)) / columns);
   const maxCardW = Math.max(baseCardW, vw - margin * 2);
   const cardH = isSmall ? 36 : 46;
-  const topY = margin;
+  const title = document.querySelector(".page-title");
+  const titleRect = title ? title.getBoundingClientRect() : null;
+  const topY = titleRect ? Math.max(margin, Math.ceil(titleRect.bottom + 6)) : margin;
   const bottomY = Math.max(margin, vh - margin - rowsPerZone * cardH - (rowsPerZone - 1) * gap);
   const layoutItems = items.map((item, index) => {
     const textWidth = getMemoTextWidth(item, isSmall);
+    const roomyTextWidth = getMemoTextWidth(item, isSmall, 3);
+    const isRoomy = roomyTextWidth <= baseCardW;
     const width = Math.min(maxCardW, Math.max(baseCardW, textWidth));
     const rand = seededRandom(`${item.key}:${index}`);
 
@@ -1680,6 +1722,7 @@ function getMemoLayout(items) {
       width,
       height: cardH,
       isWide: width > baseCardW + 1,
+      isRoomy,
       rotation: rand() < 0.5 ? -1.5 : 1.5
     };
   });
@@ -1702,6 +1745,7 @@ function getMemoLayout(items) {
       width: layoutItem.width,
       height: layoutItem.height,
       layer: layoutItem.width,
+      isRoomy: layoutItem.isRoomy,
       rotation: layoutItem.rotation
     });
   };
@@ -1789,7 +1833,7 @@ function renderQuestionMemoLayer() {
     const item = items[pos.itemIndex];
     const displayItem = getMemoDisplayItem(item);
     const card = document.createElement("div");
-    card.className = "question-memo-card";
+    card.className = `question-memo-card${pos.isRoomy ? " memo-roomy" : ""}`;
     card.style.left = `${pos.x}px`;
     card.style.top = `${pos.y}px`;
     card.style.width = `${pos.width}px`;
