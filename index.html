@@ -89,21 +89,6 @@
     display: grid;
   }
 
-  .menu-page.basic-page {
-    grid-template-columns: repeat(6, minmax(0, 1fr));
-  }
-
-  .menu-page.basic-page .basic-verb-btn {
-    grid-column: span 2;
-  }
-
-  .menu-page.basic-page .basic-adjective-btn {
-    grid-column: span 3;
-  }
-
-  .menu-page.basic-page .basic-other-btn {
-    grid-column: span 6;
-  }
 
   .menu-btn {
     width: 100%;
@@ -925,7 +910,7 @@
   <div class="page-title"><span class="title-emoji left">🐢</span> 活用れんしゅう <span class="title-emoji right">🐢</span></div>
 
   <div class="button-grid">
-    <div class="menu-page basic-page active" data-page="0">
+    <div class="menu-page active" data-page="0">
       <button class="menu-btn basic-verb-btn" onclick="showTable('Vます')">Vます</button>
       <button class="menu-btn basic-verb-btn" onclick="showTable('Vて')">Vて</button>
       <button class="menu-btn basic-verb-btn" onclick="showTable('Vた')">Vた</button>
@@ -936,7 +921,7 @@
       <button class="menu-btn basic-adjective-btn" onclick="showTable('形-た')">形-た</button>
       <button class="menu-btn basic-adjective-btn" onclick="showTable('形-ない')">形-ない</button>
       <button class="menu-btn basic-adjective-btn" onclick="showTable('形-なかった')">形-なかった</button>
-      <button class="menu-btn basic-other-btn" onclick="showTable('とき')">とき</button>
+      <button class="menu-btn" onclick="showTable('とき')">とき</button>
     </div>
 
     <div class="menu-page" data-page="1">
@@ -1628,7 +1613,7 @@ function getMemoLayout(items) {
   const isSmall = vw <= 420;
   const margin = isSmall ? 5 : 8;
   const gap = isSmall ? 4 : 6;
-  const columns = vw <= 720 ? 4 : 8;
+  const columns = 3;
   const rowsPerZone = Math.ceil(QUESTION_MEMO_ZONE_LIMIT / columns);
   const cardW = Math.floor((vw - margin * 2 - gap * (columns - 1)) / columns);
   const cardH = isSmall ? 36 : 46;
