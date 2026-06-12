@@ -114,12 +114,12 @@
   }
 
   .menu-btn.basic-verb-btn {
-    background: #ffe1f1;
-    box-shadow: 0 5px 0 #ffc4df, 0 8px 14px rgba(0,0,0,0.08);
+    background: #ffe8f5;
+    box-shadow: 0 5px 0 #ffd0e7, 0 8px 14px rgba(0,0,0,0.08);
   }
 
   .menu-btn.basic-verb-btn:active {
-    box-shadow: 0 1px 0 #ffc4df, 0 4px 8px rgba(0,0,0,0.08);
+    box-shadow: 0 1px 0 #ffd0e7, 0 4px 8px rgba(0,0,0,0.08);
   }
 
   .menu-btn.basic-adjective-btn {
@@ -950,7 +950,9 @@
       <button class="menu-btn" onclick="showTable('Vたら')">Vたら</button>
     </div>
 
-    <div class="menu-page" data-page="2">
+    <div class="menu-page" data-page="2"></div>
+
+    <div class="menu-page" data-page="3">
       <button class="menu-btn" onclick="showTable('Vられる')">Vられる</button>
       <button class="menu-btn" onclick="showTable('Vさせる')">Vさせる</button>
       <button class="menu-btn" onclick="showTable('Vさせられる')">Vさせられる</button>
@@ -992,7 +994,7 @@ function closeStartNotice() {
 
 
 let currentMenuPage = 0;
-const menuPageNames = ["基礎", "初級1", "初中級"];
+const menuPageNames = ["基礎", "初級1", "初級2", "初中級"];
 
 function updateMenuPage() {
   document.querySelectorAll(".menu-page").forEach((page, index) => {
@@ -2412,7 +2414,7 @@ const adjectiveNaru30 = [
 ];
 
 function makeAdjectiveNaruTable() {
-  makeFlat30Table("形-なる", "形-なる", adjectiveNaru30, "形容詞・辞書形");
+  makeFlat30Table("形-なる", "形-なる（变得）", adjectiveNaru30, "形容詞・辞書形");
 }
 
 function makeAdjectiveTable(rightTitle, answerIndex) {
@@ -3389,17 +3391,17 @@ const vPotential30 = [
   ["<ruby>来<rt>く</rt></ruby>る", "<ruby>来<rt>こ</rt></ruby>られる"]
 ];
 
-function makeTaiTable() { makeFlat30Table("Vたいです", "Vたいです", vTai30, "辞書形"); }
+function makeTaiTable() { makeFlat30Table("Vたいです", "Vたいです（想）", vTai30, "辞書形"); }
 function makeMasenkaTable() { makeFlat30Table("Vませんか", "Vませんか", vMasenka30, "ヒント"); }
 function makeMashouTable() { makeFlat30Table("Vましょう", "Vましょう", vMashou30, "ヒント"); }
-function makeTemoiiTable() { makeFlat30Table("Vてもいいですか", "Vてもいいですか", vTemoii30, "ヒント"); }
-function makeTekudasaiTable() { makeFlat30Table("Vてください", "Vてください", vTekudasai30, "ヒント"); }
-function makeNaideKudasaiTable() { makeFlat30Table("Vないでください", "Vないでください", vNaideKudasai30, "ヒント"); }
-function makeTeimasuTable() { makeFlat30Table("Vています", "Vています", vTeimasu30, "ヒント"); }
-function makeTariTable() { makeFlat30Table("Vたり", "Vたり", vTari30, "ヒント"); }
-function makeTaraTable() { makeTaraPartialColorTable("Vたら", "Vたら", vTara30); }
-function makeTaKotoArimasuTable() { makeFlat30Table("Vたことがありますか", "Vたことがありますか", vTaKotoArimasu30, "ヒント"); }
-function makeTekimasuTable() { makeFlat30Table("Vてきます", "Vてきます", vTekimasu30, "ヒント"); }
+function makeTemoiiTable() { makeFlat30Table("Vてもいいですか", "Vてもいいですか（可以吗？）", vTemoii30, "ヒント"); }
+function makeTekudasaiTable() { makeFlat30Table("Vてください", "Vてください（请）", vTekudasai30, "ヒント"); }
+function makeNaideKudasaiTable() { makeFlat30Table("Vないでください", "Vないでください（请不要）", vNaideKudasai30, "ヒント"); }
+function makeTeimasuTable() { makeFlat30Table("Vています", "Vています（正在）", vTeimasu30, "ヒント"); }
+function makeTariTable() { makeFlat30Table("Vたり", "Vたり（又…又…）", vTari30, "ヒント"); }
+function makeTaraTable() { makeTaraPartialColorTable("Vたら", "Vたら（如果）", vTara30); }
+function makeTaKotoArimasuTable() { makeFlat30Table("Vたことがありますか", "Vたことがありますか（有过吗？）", vTaKotoArimasu30, "ヒント"); }
+function makeTekimasuTable() { makeFlat30Table("Vてきます", "Vてきます（回来）", vTekimasu30, "ヒント"); }
 function makeYouTable() { makeFlatTaggedTable("Vよう", "Vよう", vYou30); }
 function makePotentialTable() { makeFlatTaggedTable("可能形", "可能形", vPotential30); }
 function makeNakattaTable() { makeAdjectiveKunakattaTable(); }
@@ -3469,8 +3471,8 @@ function fitTableTextOneLine() {
   if (!table) return;
 
   const maxFont = 18;
-  const minTableFont = 13;
-  const minCellFont = 7;
+  const minTableFont = 15;
+  const minCellFont = 10;
   const wrap = document.querySelector(".table-wrap");
 
   const shrinkTargets = () => Array.from(table.querySelectorAll(
