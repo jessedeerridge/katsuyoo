@@ -664,7 +664,7 @@
     min-width: 0;
     max-width: calc(100vw - 16px);
     min-height: 38px;
-    padding: 6px 9px;
+    padding: 6px 0;
     border-radius: 12px;
     background: rgba(255, 255, 255, 0.86);
     border: 1.5px dashed rgba(255, 111, 174, 0.62);
@@ -679,6 +679,9 @@
     word-break: keep-all;
     white-space: nowrap;
     overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     pointer-events: auto;
     cursor: pointer;
     touch-action: manipulation;
@@ -747,6 +750,11 @@
     flex: 0 0 auto;
     color: #d90000;
     font-size: 11px;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    align-self: center;
   }
 
   .question-memo-card ruby,
@@ -762,7 +770,7 @@
   @media (max-width: 420px) {
     .question-memo-card {
       min-height: 30px;
-      padding: 4px 5px;
+      padding: 4px 0;
       border-radius: 10px;
       font-size: 8px;
     }
