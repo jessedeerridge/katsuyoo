@@ -894,15 +894,24 @@
 
   #tableArea tr:not(.group-row) td:first-child {
     text-align: right;
-    padding-right: 1em;
+    padding-right: 2em;
   }
 
   #tableArea tr:not(.group-row) td:first-child .word-text {
     text-align: right;
-    padding-right: 1em;
+    padding-right: 2em;
   }
 
   #tableArea table:not(.tight-table) tr:not(.group-row) td:first-child .word-text {
+    transform: none;
+  }
+
+  #tableArea tr:not(.group-row) td.short-answer-cell {
+    text-align: left;
+    padding-left: 2em;
+  }
+
+  #tableArea tr:not(.group-row) td.short-answer-cell .answer-text {
     transform: none;
   }
 
@@ -3494,9 +3503,24 @@ function toggleQuestionMark(button) {
 }
 
 
+function getCellAlignmentText(cell) {
+  const clone = cell.cloneNode(true);
+  clone.querySelectorAll("rt, .answer-mask-cover").forEach(el => el.remove());
+  return clone.textContent.replace(/\s+/g, "").trim();
+}
+
+function applyShortAnswerAlignment() {
+  document.querySelectorAll("#tableArea tr:not(.group-row) td:last-child").forEach(cell => {
+    const textLength = getCellAlignmentText(cell).length;
+    cell.classList.toggle("short-answer-cell", textLength > 0 && textLength <= 9);
+  });
+}
+
 function fitTableTextOneLine() {
   const table = document.querySelector("#tableArea table");
   if (!table) return;
+
+  applyShortAnswerAlignment();
 
   const maxFont = 18;
   const minTableFont = 15;
