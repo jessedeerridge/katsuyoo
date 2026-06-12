@@ -112,6 +112,24 @@
     box-shadow: 0 1px 0 #ffd1e6, 0 4px 8px rgba(0,0,0,0.08);
   }
 
+  .menu-btn.basic-verb-btn {
+    background: #f5fcff;
+    box-shadow: 0 5px 0 #e4f5ff, 0 8px 14px rgba(0,0,0,0.08);
+  }
+
+  .menu-btn.basic-verb-btn:active {
+    box-shadow: 0 1px 0 #e4f5ff, 0 4px 8px rgba(0,0,0,0.08);
+  }
+
+  .menu-btn.basic-adjective-btn {
+    background: #fff8fc;
+    box-shadow: 0 5px 0 #ffe7f3, 0 8px 14px rgba(0,0,0,0.08);
+  }
+
+  .menu-btn.basic-adjective-btn:active {
+    box-shadow: 0 1px 0 #ffe7f3, 0 4px 8px rgba(0,0,0,0.08);
+  }
+
   .page-nav {
     position: fixed;
     top: 50%;
@@ -834,6 +852,19 @@
     clip-path: inset(0 0 0 0);
   }
 
+  #tableArea table:not(.tight-table) .word-text {
+    transform: translateX(3px);
+  }
+
+  #tableArea table:not(.tight-table) .answer-text {
+    transform: translateX(-3px);
+  }
+
+  #tableArea table.fitting-table .word-text,
+  #tableArea table.fitting-table .answer-text {
+    transform: none;
+  }
+
   #tableArea .answer-text ruby,
   #tableArea .word-text ruby {
     max-width: 100%;
@@ -879,16 +910,16 @@
 
   <div class="button-grid">
     <div class="menu-page active" data-page="0">
-      <button class="menu-btn" onclick="showTable('Vます')">Vます</button>
-      <button class="menu-btn" onclick="showTable('Vて')">Vて</button>
-      <button class="menu-btn" onclick="showTable('Vた')">Vた</button>
-      <button class="menu-btn" onclick="showTable('Vない')">Vない</button>
-      <button class="menu-btn" onclick="showTable('Vよう')">Vよう</button>
-      <button class="menu-btn" onclick="showTable('V可能')">V可能</button>
-      <button class="menu-btn" onclick="showTable('形-て')">形-て</button>
-      <button class="menu-btn" onclick="showTable('形-た')">形-た</button>
-      <button class="menu-btn" onclick="showTable('形-ない')">形-ない</button>
-      <button class="menu-btn" onclick="showTable('形-なかった')">形-なかった</button>
+      <button class="menu-btn basic-verb-btn" onclick="showTable('Vます')">Vます</button>
+      <button class="menu-btn basic-verb-btn" onclick="showTable('Vて')">Vて</button>
+      <button class="menu-btn basic-verb-btn" onclick="showTable('Vた')">Vた</button>
+      <button class="menu-btn basic-verb-btn" onclick="showTable('Vない')">Vない</button>
+      <button class="menu-btn basic-verb-btn" onclick="showTable('Vよう')">Vよう</button>
+      <button class="menu-btn basic-verb-btn" onclick="showTable('V可能')">V可能</button>
+      <button class="menu-btn basic-adjective-btn" onclick="showTable('形-て')">形-て</button>
+      <button class="menu-btn basic-adjective-btn" onclick="showTable('形-た')">形-た</button>
+      <button class="menu-btn basic-adjective-btn" onclick="showTable('形-ない')">形-ない</button>
+      <button class="menu-btn basic-adjective-btn" onclick="showTable('形-なかった')">形-なかった</button>
       <button class="menu-btn" onclick="showTable('とき')">とき</button>
     </div>
 
@@ -3236,6 +3267,8 @@ function fitTableTextOneLine() {
   const wrap = document.querySelector(".table-wrap");
 
   const resetFont = () => {
+    table.classList.remove("tight-table");
+    table.classList.add("fitting-table");
     table.style.setProperty("--table-font-size", `${maxFont}px`);
     table.dataset.fittedFontSize = String(maxFont);
   };
@@ -3275,6 +3308,8 @@ function fitTableTextOneLine() {
   }
 
   table.dataset.fittedFontSize = String(size);
+  table.classList.remove("fitting-table");
+  table.classList.toggle("tight-table", size < maxFont);
 }
 function adjustScrollExtraHeight() {
   const extra = document.querySelector(".scroll-extra-y");
