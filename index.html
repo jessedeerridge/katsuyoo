@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
 
-<title>活用練習 v23</title>
+<title>活用練習 v24</title>
 
 <style>
   @import url("https://fonts.googleapis.com/css2?family=Kosugi+Maru&family=Ma+Shan+Zheng&family=ZCOOL+KuaiLe&display=swap");
@@ -612,6 +612,22 @@
   }
 
 
+
+  /* ===== Vたら：文中の語句だけに色を付ける ===== */
+  #tableArea .phrase-color {
+    display: inline-block;
+    padding: 2px 4px;
+    border-radius: 8px;
+  }
+
+  #tableArea .phrase-color.te-utsuru { background: #f0faeb !important; }
+  #tableArea .phrase-color.te-mubunu { background: #ffe0ef !important; }
+  #tableArea .phrase-color.te-ku { background: #deefff !important; }
+  #tableArea .phrase-color.te-gu { background: #deefff !important; }
+  #tableArea .phrase-color.te-su { background: #ffe8cc !important; }
+  #tableArea .phrase-color.te-iku { background: #eee6ff !important; }
+  #tableArea .phrase-color.te-ichidan { background: #fffbe3 !important; }
+
   /* ===== 起動時の説明パネル ===== */
   .start-notice-overlay {
     position: fixed;
@@ -737,19 +753,19 @@
       <button class="menu-btn" onclick="showTable('Vない')">Vない</button>
       <button class="menu-btn" onclick="showTable('Vよう')">Vよう</button>
       <button class="menu-btn" onclick="showTable('V可能')">V可能</button>
-      <button class="menu-btn" onclick="showTable('とき')">とき</button>
-      <button class="menu-btn empty" aria-hidden="true" tabindex="-1"></button>
-      <button class="menu-btn" onclick="showTable('形-なかった')">形-なかった</button>
       <button class="menu-btn" onclick="showTable('形-て')">形-て</button>
       <button class="menu-btn" onclick="showTable('形-た')">形-た</button>
       <button class="menu-btn" onclick="showTable('形-ない')">形-ない</button>
+      <button class="menu-btn" onclick="showTable('とき')">とき</button>
     </div>
 
     <div class="menu-page" data-page="1">
+      <button class="menu-btn" onclick="showTable('形-なかった')">形-なかった</button>
       <button class="menu-btn" onclick="showTable('Vたい')">Vたい</button>
       <button class="menu-btn" onclick="showTable('Vています')">Vています</button>
       <button class="menu-btn" onclick="showTable('Vてきます')">Vてきます</button>
       <button class="menu-btn" onclick="showTable('Vてもいいですか')">Vてもいいですか</button>
+      <button class="menu-btn" onclick="showTable('Vたことがあります')">Vたことがあります</button>
       <button class="menu-btn" onclick="showTable('Vたり')">Vたり</button>
       <button class="menu-btn" onclick="showTable('Vたら')">Vたら</button>
     </div>
@@ -1253,6 +1269,8 @@ function showTable(type) {
     makeTariTable();
   } else if (type === "たら" || type === "Vたら") {
     makeTaraTable();
+  } else if (type === "Vたことがあります") {
+    makeTaKotoArimasuTable();
   } else if (type === "Vてきます") {
     makeTekimasuTable();
   } else if (type === "Vよう" || type === "よう") {
@@ -1364,12 +1382,12 @@ function toggleMasuSwap() {
 }
 
 function makeMasuTable() {
-  const leftTitle = masuSwapped ? "マス形" : "動詞の原形";
-  const rightTitle = masuSwapped ? "動詞の原形" : "マス形";
+  const leftTitle = masuSwapped ? "マス形" : "辞書形";
+  const rightTitle = masuSwapped ? "辞書形" : "マス形";
 
   let html = `
     <div class="masu-table-holder">
-      <button class="masu-swap-btn" type="button" onclick="toggleMasuSwap()" aria-label="原形とマス形を入れかえる">⇔</button>
+      <button class="masu-swap-btn" type="button" onclick="toggleMasuSwap()" aria-label="辞書形とマス形を入れかえる">⇔</button>
       <table class="masu-table">
         <colgroup>
           <col class="masu-side-col">
@@ -1428,7 +1446,7 @@ function makeTaiTable() {
   let html = `
     <table>
       <tr>
-        <th>動詞の原形</th>
+        <th>辞書形</th>
         <th>～たいです</th>
       </tr>
 
@@ -1494,7 +1512,7 @@ function makeTeTable() {
   let html = `
     <table>
       <tr>
-        <th>動詞の原形</th>
+        <th>辞書形</th>
         <th>て形</th>
       </tr>
   `;
@@ -1527,7 +1545,7 @@ function makeTaTable() {
   let html = `
     <table>
       <tr>
-        <th>動詞の原形</th>
+        <th>辞書形</th>
         <th>た形</th>
       </tr>
   `;
@@ -1561,7 +1579,7 @@ function makeGroupTable(title, rightTitle, godanRows, ichidanRows, irregularRows
   let html = `
     <table>
       <tr>
-        <th>動詞の原形</th>
+        <th>辞書形</th>
         <th>${rightTitle}</th>
       </tr>
 
@@ -1644,7 +1662,7 @@ function makeAdjectiveTable(rightTitle, answerIndex) {
   let html = `
     <table>
       <tr>
-        <th>ことば</th>
+        <th>形容詞・辞書形</th>
         <th>${rightTitle}</th>
       </tr>
 
@@ -1727,8 +1745,9 @@ function makeAdjectiveKunakattaTable() {
 function appendSimpleRows(rows) {
   let html = "";
   rows.forEach(row => {
+    const rowClass = row[2] ? ` class="${row[2]}"` : "";
     html += `
-      <tr>
+      <tr${rowClass}>
         <td>${makeWordCell(row[0])}</td>
         <td><span class="answer-text">${row[1]}</span></td>
       </tr>
@@ -1741,7 +1760,7 @@ function makeTokiTable() {
   let html = `
     <table>
       <tr>
-        <th>ことば</th>
+        <th>形容詞・辞書形</th>
         <th>とき</th>
       </tr>
 
@@ -2043,7 +2062,41 @@ function makeGroupedExpressionTable(title, data) {
 
 
 /* ===== v21：初級ページ 30語セット ===== */
-function makeFlat30Table(title, rightTitle, rows) {
+function makeFlat30Table(title, rightTitle, rows, leftTitle = "辞書形") {
+  let html = `
+    <table>
+      <tr>
+        <th>${leftTitle}</th>
+        <th>${rightTitle}</th>
+      </tr>
+  `;
+
+  rows.forEach(row => {
+    const rowClass = row[2] ? ` class="${row[2]}"` : "";
+    html += `
+      <tr${rowClass}>
+        <td>${makeWordCell(row[0])}</td>
+        <td><span class="answer-text">${row[1]}</span></td>
+      </tr>
+    `;
+  });
+
+  html += `
+    </table>
+    <div class="scroll-extra-y"></div>
+  `;
+
+  document.getElementById("tableArea").innerHTML = html;
+
+  requestAnimationFrame(() => {
+    fitTableTextOneLine();
+    adjustScrollExtraHeight();
+    updateSheetHiddenText();
+  });
+}
+
+
+function makeTaraPartialColorTable(title, rightTitle, rows) {
   let html = `
     <table>
       <tr>
@@ -2075,37 +2128,88 @@ function makeFlat30Table(title, rightTitle, rows) {
   });
 }
 
+function makeFlatTaggedTable(title, rightTitle, rows) {
+  let html = `
+    <table>
+      <tr>
+        <th>辞書形</th>
+        <th>${rightTitle}</th>
+      </tr>
+      <tr class="group-row">
+        <td colspan="2">五段動詞</td>
+      </tr>
+  `;
+
+  rows.forEach((row, index) => {
+    if (index === 20) {
+      html += `
+      <tr class="group-row">
+        <td colspan="2">一段動詞</td>
+      </tr>
+      `;
+    }
+    if (index === 27) {
+      html += `
+      <tr class="group-row">
+        <td colspan="2">不規則動詞</td>
+      </tr>
+      `;
+    }
+
+    const rowClass = row[2] ? ` class="${row[2]}"` : "";
+    html += `
+      <tr${rowClass}>
+        <td>${makeWordCell(row[0])}</td>
+        <td><span class="answer-text">${row[1]}</span></td>
+      </tr>
+    `;
+  });
+
+  html += `
+    </table>
+    <div class="scroll-extra-y"></div>
+  `;
+
+  document.getElementById("tableArea").innerHTML = html;
+
+  requestAnimationFrame(() => {
+    fitTableTextOneLine();
+    adjustScrollExtraHeight();
+    updateSheetHiddenText();
+  });
+}
+
 const vTai30 = [
-  ["<ruby>行<rt>い</rt></ruby>く", "<ruby>行<rt>い</rt></ruby>きたい"],
-  ["<ruby>飲<rt>の</rt></ruby>む", "<ruby>飲<rt>の</rt></ruby>みたい"],
-  ["<ruby>聞<rt>き</rt></ruby>く", "<ruby>聞<rt>き</rt></ruby>きたい"],
-  ["<ruby>読<rt>よ</rt></ruby>む", "<ruby>読<rt>よ</rt></ruby>みたい"],
-  ["<ruby>書<rt>か</rt></ruby>く", "<ruby>書<rt>か</rt></ruby>きたい"],
-  ["<ruby>話<rt>はな</rt></ruby>す", "<ruby>話<rt>はな</rt></ruby>したい"],
-  ["<ruby>買<rt>か</rt></ruby>う", "<ruby>買<rt>か</rt></ruby>いたい"],
-  ["<ruby>会<rt>あ</rt></ruby>う", "<ruby>会<rt>あ</rt></ruby>いたい"],
-  ["<ruby>帰<rt>かえ</rt></ruby>る", "<ruby>帰<rt>かえ</rt></ruby>りたい"],
-  ["<ruby>働<rt>はたら</rt></ruby>く", "<ruby>働<rt>はたら</rt></ruby>きたい"],
-  ["<ruby>遊<rt>あそ</rt></ruby>ぶ", "<ruby>遊<rt>あそ</rt></ruby>びたい"],
-  ["<ruby>待<rt>ま</rt></ruby>つ", "<ruby>待<rt>ま</rt></ruby>ちたい"],
-  ["<ruby>使<rt>つか</rt></ruby>う", "<ruby>使<rt>つか</rt></ruby>いたい"],
-  ["<ruby>休<rt>やす</rt></ruby>む", "<ruby>休<rt>やす</rt></ruby>みたい"],
-  ["<ruby>歌<rt>うた</rt></ruby>う", "<ruby>歌<rt>うた</rt></ruby>いたい"],
-  ["<ruby>乗<rt>の</rt></ruby>る", "<ruby>乗<rt>の</rt></ruby>りたい"],
-  ["<ruby>泳<rt>およ</rt></ruby>ぐ", "<ruby>泳<rt>およ</rt></ruby>ぎたい"],
-  ["<ruby>走<rt>はし</rt></ruby>る", "<ruby>走<rt>はし</rt></ruby>りたい"],
-  ["<ruby>撮<rt>と</rt></ruby>る", "<ruby>撮<rt>と</rt></ruby>りたい"],
-  ["<ruby>作<rt>つく</rt></ruby>る", "<ruby>作<rt>つく</rt></ruby>りたい"],
-  ["<ruby>食<rt>た</rt></ruby>べる", "<ruby>食<rt>た</rt></ruby>べたい"],
-  ["<ruby>見<rt>み</rt></ruby>る", "<ruby>見<rt>み</rt></ruby>たい"],
-  ["<ruby>寝<rt>ね</rt></ruby>る", "<ruby>寝<rt>ね</rt></ruby>たい"],
-  ["<ruby>起<rt>お</rt></ruby>きる", "<ruby>起<rt>お</rt></ruby>きたい"],
-  ["<ruby>借<rt>か</rt></ruby>りる", "<ruby>借<rt>か</rt></ruby>りたい"],
-  ["<ruby>開<rt>あ</rt></ruby>ける", "<ruby>開<rt>あ</rt></ruby>けたい"],
-  ["<ruby>閉<rt>し</rt></ruby>める", "<ruby>閉<rt>し</rt></ruby>めたい"],
-  ["する", "したい"],
-  ["<ruby>勉強<rt>べんきょう</rt></ruby>する", "<ruby>勉強<rt>べんきょう</rt></ruby>したい"],
-  ["<ruby>来<rt>く</rt></ruby>る", "<ruby>来<rt>き</rt></ruby>たい"]
+  ["<ruby>行<rt>い</rt></ruby>く", "<ruby>行<rt>い</rt></ruby>きたいです"],
+  ["<ruby>飲<rt>の</rt></ruby>む", "<ruby>飲<rt>の</rt></ruby>みたいです"],
+  ["<ruby>聞<rt>き</rt></ruby>く", "<ruby>聞<rt>き</rt></ruby>きたいです"],
+  ["<ruby>読<rt>よ</rt></ruby>む", "<ruby>読<rt>よ</rt></ruby>みたいです"],
+  ["<ruby>書<rt>か</rt></ruby>く", "<ruby>書<rt>か</rt></ruby>きたいです"],
+  ["<ruby>話<rt>はな</rt></ruby>す", "<ruby>話<rt>はな</rt></ruby>したいです"],
+  ["<ruby>買<rt>か</rt></ruby>う", "<ruby>買<rt>か</rt></ruby>いたいです"],
+  ["<ruby>会<rt>あ</rt></ruby>う", "<ruby>会<rt>あ</rt></ruby>いたいです"],
+  ["<ruby>帰<rt>かえ</rt></ruby>る", "<ruby>帰<rt>かえ</rt></ruby>りたいです"],
+  ["<ruby>働<rt>はたら</rt></ruby>く", "<ruby>働<rt>はたら</rt></ruby>きたいです"],
+  ["<ruby>遊<rt>あそ</rt></ruby>ぶ", "<ruby>遊<rt>あそ</rt></ruby>びたいです"],
+  ["<ruby>待<rt>ま</rt></ruby>つ", "<ruby>待<rt>ま</rt></ruby>ちたいです"],
+  ["<ruby>使<rt>つか</rt></ruby>う", "<ruby>使<rt>つか</rt></ruby>いたいです"],
+  ["<ruby>休<rt>やす</rt></ruby>む", "<ruby>休<rt>やす</rt></ruby>みたいです"],
+  ["<ruby>歌<rt>うた</rt></ruby>う", "<ruby>歌<rt>うた</rt></ruby>いたいです"],
+  ["<ruby>乗<rt>の</rt></ruby>る", "<ruby>乗<rt>の</rt></ruby>りたいです"],
+  ["<ruby>泳<rt>およ</rt></ruby>ぐ", "<ruby>泳<rt>およ</rt></ruby>ぎたいです"],
+  ["<ruby>走<rt>はし</rt></ruby>る", "<ruby>走<rt>はし</rt></ruby>りたいです"],
+  ["<ruby>撮<rt>と</rt></ruby>る", "<ruby>撮<rt>と</rt></ruby>りたいです"],
+  ["<ruby>作<rt>つく</rt></ruby>る", "<ruby>作<rt>つく</rt></ruby>りたいです"],
+  ["<ruby>食<rt>た</rt></ruby>べる", "<ruby>食<rt>た</rt></ruby>べたいです"],
+  ["<ruby>見<rt>み</rt></ruby>る", "<ruby>見<rt>み</rt></ruby>たいです"],
+  ["<ruby>寝<rt>ね</rt></ruby>る", "<ruby>寝<rt>ね</rt></ruby>たいです"],
+  ["<ruby>起<rt>お</rt></ruby>きる", "<ruby>起<rt>お</rt></ruby>きたいです"],
+  ["<ruby>借<rt>か</rt></ruby>りる", "<ruby>借<rt>か</rt></ruby>りたいです"],
+  ["<ruby>開<rt>あ</rt></ruby>ける", "<ruby>開<rt>あ</rt></ruby>けたいです"],
+  ["<ruby>閉<rt>し</rt></ruby>める", "<ruby>閉<rt>し</rt></ruby>めたいです"],
+  ["する", "したいです"],
+  ["<ruby>勉強<rt>べんきょう</rt></ruby>する", "<ruby>勉強<rt>べんきょう</rt></ruby>したいです"],
+  ["<ruby>来<rt>く</rt></ruby>る", "<ruby>来<rt>き</rt></ruby>たいです"]
 ];
 
 const vMasenka30 = [
@@ -2144,69 +2248,69 @@ const vMasenka30 = [
 const vMashou30 = vMasenka30.map(row => [row[0], row[1].replace(/ませんか/g, "ましょう").replace(/いっしょに/g, "いっしょに")]);
 
 const vTemoii30 = [
-  ["ここに <ruby>書<rt>か</rt></ruby>く", "ここに <ruby>書<rt>か</rt></ruby>いてもいいですか"],
-  ["<ruby>写真<rt>しゃしん</rt></ruby>を <ruby>撮<rt>と</rt></ruby>る", "<ruby>写真<rt>しゃしん</rt></ruby>を <ruby>撮<rt>と</rt></ruby>ってもいいですか"],
-  ["このペンを <ruby>使<rt>つか</rt></ruby>う", "このペンを <ruby>使<rt>つか</rt></ruby>ってもいいですか"],
-  ["<ruby>水<rt>みず</rt></ruby>を <ruby>飲<rt>の</rt></ruby>む", "<ruby>水<rt>みず</rt></ruby>を <ruby>飲<rt>の</rt></ruby>んでもいいですか"],
-  ["<ruby>窓<rt>まど</rt></ruby>を <ruby>開<rt>あ</rt></ruby>ける", "<ruby>窓<rt>まど</rt></ruby>を <ruby>開<rt>あ</rt></ruby>けてもいいですか"],
-  ["ここに <ruby>座<rt>すわ</rt></ruby>る", "ここに <ruby>座<rt>すわ</rt></ruby>ってもいいですか"],
-  ["<ruby>部屋<rt>へや</rt></ruby>に <ruby>入<rt>はい</rt></ruby>る", "<ruby>部屋<rt>へや</rt></ruby>に <ruby>入<rt>はい</rt></ruby>ってもいいですか"],
-  ["<ruby>早<rt>はや</rt></ruby>く <ruby>帰<rt>かえ</rt></ruby>る", "<ruby>早<rt>はや</rt></ruby>く <ruby>帰<rt>かえ</rt></ruby>ってもいいですか"],
-  ["<ruby>友<rt>とも</rt></ruby>だちを <ruby>呼<rt>よ</rt></ruby>ぶ", "<ruby>友<rt>とも</rt></ruby>だちを <ruby>呼<rt>よ</rt></ruby>んでもいいですか"],
-  ["ここで <ruby>待<rt>ま</rt></ruby>つ", "ここで <ruby>待<rt>ま</rt></ruby>ってもいいですか"],
-  ["<ruby>音楽<rt>おんがく</rt></ruby>を <ruby>聞<rt>き</rt></ruby>く", "<ruby>音楽<rt>おんがく</rt></ruby>を <ruby>聞<rt>き</rt></ruby>いてもいいですか"],
-  ["<ruby>本<rt>ほん</rt></ruby>を <ruby>読<rt>よ</rt></ruby>む", "<ruby>本<rt>ほん</rt></ruby>を <ruby>読<rt>よ</rt></ruby>んでもいいですか"],
-  ["<ruby>名前<rt>なまえ</rt></ruby>を <ruby>書<rt>か</rt></ruby>く", "<ruby>名前<rt>なまえ</rt></ruby>を <ruby>書<rt>か</rt></ruby>いてもいいですか"],
-  ["<ruby>質問<rt>しつもん</rt></ruby>を <ruby>聞<rt>き</rt></ruby>く", "<ruby>質問<rt>しつもん</rt></ruby>を <ruby>聞<rt>き</rt></ruby>いてもいいですか"],
-  ["<ruby>写真<rt>しゃしん</rt></ruby>を <ruby>見<rt>み</rt></ruby>る", "<ruby>写真<rt>しゃしん</rt></ruby>を <ruby>見<rt>み</rt></ruby>てもいいですか"],
-  ["これを <ruby>食<rt>た</rt></ruby>べる", "これを <ruby>食<rt>た</rt></ruby>べてもいいですか"],
-  ["テレビを <ruby>見<rt>み</rt></ruby>る", "テレビを <ruby>見<rt>み</rt></ruby>てもいいですか"],
-  ["<ruby>少<rt>すこ</rt></ruby>し <ruby>休<rt>やす</rt></ruby>む", "<ruby>少<rt>すこ</rt></ruby>し <ruby>休<rt>やす</rt></ruby>んでもいいですか"],
-  ["<ruby>電話<rt>でんわ</rt></ruby>を <ruby>使<rt>つか</rt></ruby>う", "<ruby>電話<rt>でんわ</rt></ruby>を <ruby>使<rt>つか</rt></ruby>ってもいいですか"],
-  ["<ruby>車<rt>くるま</rt></ruby>を <ruby>止<rt>と</rt></ruby>める", "<ruby>車<rt>くるま</rt></ruby>を <ruby>止<rt>と</rt></ruby>めてもいいですか"],
-  ["<ruby>ドア<rt>どあ</rt></ruby>を <ruby>閉<rt>し</rt></ruby>める", "<ruby>ドア<rt>どあ</rt></ruby>を <ruby>閉<rt>し</rt></ruby>めてもいいですか"],
-  ["<ruby>電気<rt>でんき</rt></ruby>を <ruby>消<rt>け</rt></ruby>す", "<ruby>電気<rt>でんき</rt></ruby>を <ruby>消<rt>け</rt></ruby>してもいいですか"],
-  ["<ruby>先生<rt>せんせい</rt></ruby>に <ruby>話<rt>はな</rt></ruby>す", "<ruby>先生<rt>せんせい</rt></ruby>に <ruby>話<rt>はな</rt></ruby>してもいいですか"],
-  ["<ruby>宿題<rt>しゅくだい</rt></ruby>を <ruby>出<rt>だ</rt></ruby>す", "<ruby>宿題<rt>しゅくだい</rt></ruby>を <ruby>出<rt>だ</rt></ruby>してもいいですか"],
-  ["<ruby>朝<rt>あさ</rt></ruby> <ruby>寝<rt>ね</rt></ruby>る", "<ruby>朝<rt>あさ</rt></ruby> <ruby>寝<rt>ね</rt></ruby>てもいいですか"],
-  ["<ruby>本<rt>ほん</rt></ruby>を <ruby>借<rt>か</rt></ruby>りる", "<ruby>本<rt>ほん</rt></ruby>を <ruby>借<rt>か</rt></ruby>りてもいいですか"],
-  ["<ruby>机<rt>つくえ</rt></ruby>を <ruby>動<rt>うご</rt></ruby>かす", "<ruby>机<rt>つくえ</rt></ruby>を <ruby>動<rt>うご</rt></ruby>かしてもいいですか"],
-  ["<ruby>勉強<rt>べんきょう</rt></ruby>する", "<ruby>勉強<rt>べんきょう</rt></ruby>してもいいですか"],
-  ["<ruby>電話<rt>でんわ</rt></ruby>する", "<ruby>電話<rt>でんわ</rt></ruby>してもいいですか"],
-  ["ここへ <ruby>来<rt>く</rt></ruby>る", "ここへ <ruby>来<rt>き</rt></ruby>てもいいですか"]
+  ["このペンを <ruby>使<rt>つか</rt></ruby>う", "このペンを <ruby>使<rt>つか</rt></ruby>ってもいいですか", "te-utsuru"],
+  ["ここで <ruby>待<rt>ま</rt></ruby>つ", "ここで <ruby>待<rt>ま</rt></ruby>ってもいいですか", "te-utsuru"],
+  ["<ruby>写真<rt>しゃしん</rt></ruby>を <ruby>撮<rt>と</rt></ruby>る", "<ruby>写真<rt>しゃしん</rt></ruby>を <ruby>撮<rt>と</rt></ruby>ってもいいですか", "te-utsuru"],
+  ["ここに <ruby>座<rt>すわ</rt></ruby>る", "ここに <ruby>座<rt>すわ</rt></ruby>ってもいいですか", "te-utsuru"],
+  ["<ruby>部屋<rt>へや</rt></ruby>に <ruby>入<rt>はい</rt></ruby>る", "<ruby>部屋<rt>へや</rt></ruby>に <ruby>入<rt>はい</rt></ruby>ってもいいですか", "te-utsuru"],
+  ["<ruby>友<rt>とも</rt></ruby>だちに <ruby>会<rt>あ</rt></ruby>う", "<ruby>友<rt>とも</rt></ruby>だちに <ruby>会<rt>あ</rt></ruby>ってもいいですか", "te-utsuru"],
+  ["<ruby>水<rt>みず</rt></ruby>を <ruby>飲<rt>の</rt></ruby>む", "<ruby>水<rt>みず</rt></ruby>を <ruby>飲<rt>の</rt></ruby>んでもいいですか", "te-mubunu"],
+  ["<ruby>本<rt>ほん</rt></ruby>を <ruby>読<rt>よ</rt></ruby>む", "<ruby>本<rt>ほん</rt></ruby>を <ruby>読<rt>よ</rt></ruby>んでもいいですか", "te-mubunu"],
+  ["<ruby>友<rt>とも</rt></ruby>だちを <ruby>呼<rt>よ</rt></ruby>ぶ", "<ruby>友<rt>とも</rt></ruby>だちを <ruby>呼<rt>よ</rt></ruby>んでもいいですか", "te-mubunu"],
+  ["<ruby>少<rt>すこ</rt></ruby>し <ruby>休<rt>やす</rt></ruby>む", "<ruby>少<rt>すこ</rt></ruby>し <ruby>休<rt>やす</rt></ruby>んでもいいですか", "te-mubunu"],
+  ["<ruby>服<rt>ふく</rt></ruby>を <ruby>選<rt>えら</rt></ruby>ぶ", "<ruby>服<rt>ふく</rt></ruby>を <ruby>選<rt>えら</rt></ruby>んでもいいですか", "te-mubunu"],
+  ["ここに <ruby>書<rt>か</rt></ruby>く", "ここに <ruby>書<rt>か</rt></ruby>いてもいいですか", "te-ku"],
+  ["<ruby>音楽<rt>おんがく</rt></ruby>を <ruby>聞<rt>き</rt></ruby>く", "<ruby>音楽<rt>おんがく</rt></ruby>を <ruby>聞<rt>き</rt></ruby>いてもいいですか", "te-ku"],
+  ["<ruby>教室<rt>きょうしつ</rt></ruby>で <ruby>働<rt>はたら</rt></ruby>く", "<ruby>教室<rt>きょうしつ</rt></ruby>で <ruby>働<rt>はたら</rt></ruby>いてもいいですか", "te-ku"],
+  ["ここに <ruby>置<rt>お</rt></ruby>く", "ここに <ruby>置<rt>お</rt></ruby>いてもいいですか", "te-ku"],
+  ["ここで <ruby>泳<rt>およ</rt></ruby>ぐ", "ここで <ruby>泳<rt>およ</rt></ruby>いでもいいですか", "te-gu"],
+  ["<ruby>先生<rt>せんせい</rt></ruby>に <ruby>話<rt>はな</rt></ruby>す", "<ruby>先生<rt>せんせい</rt></ruby>に <ruby>話<rt>はな</rt></ruby>してもいいですか", "te-su"],
+  ["<ruby>電気<rt>でんき</rt></ruby>を <ruby>消<rt>け</rt></ruby>す", "<ruby>電気<rt>でんき</rt></ruby>を <ruby>消<rt>け</rt></ruby>してもいいですか", "te-su"],
+  ["<ruby>宿題<rt>しゅくだい</rt></ruby>を <ruby>出<rt>だ</rt></ruby>す", "<ruby>宿題<rt>しゅくだい</rt></ruby>を <ruby>出<rt>だ</rt></ruby>してもいいですか", "te-su"],
+  ["<ruby>机<rt>つくえ</rt></ruby>を <ruby>動<rt>うご</rt></ruby>かす", "<ruby>机<rt>つくえ</rt></ruby>を <ruby>動<rt>うご</rt></ruby>かしてもいいですか", "te-su"],
+  ["トイレに <ruby>行<rt>い</rt></ruby>く", "トイレに <ruby>行<rt>い</rt></ruby>ってもいいですか", "te-iku"],
+  ["これを <ruby>食<rt>た</rt></ruby>べる", "これを <ruby>食<rt>た</rt></ruby>べてもいいですか", "te-ichidan"],
+  ["この<ruby>本<rt>ほん</rt></ruby>を <ruby>見<rt>み</rt></ruby>る", "この<ruby>本<rt>ほん</rt></ruby>を <ruby>見<rt>み</rt></ruby>てもいいですか", "te-ichidan"],
+  ["<ruby>朝<rt>あさ</rt></ruby> <ruby>寝<rt>ね</rt></ruby>る", "<ruby>朝<rt>あさ</rt></ruby> <ruby>寝<rt>ね</rt></ruby>てもいいですか", "te-ichidan"],
+  ["<ruby>本<rt>ほん</rt></ruby>を <ruby>借<rt>か</rt></ruby>りる", "<ruby>本<rt>ほん</rt></ruby>を <ruby>借<rt>か</rt></ruby>りてもいいですか", "te-ichidan"],
+  ["<ruby>窓<rt>まど</rt></ruby>を <ruby>開<rt>あ</rt></ruby>ける", "<ruby>窓<rt>まど</rt></ruby>を <ruby>開<rt>あ</rt></ruby>けてもいいですか", "te-ichidan"],
+  ["<ruby>ドア<rt>どあ</rt></ruby>を <ruby>閉<rt>し</rt></ruby>める", "<ruby>ドア<rt>どあ</rt></ruby>を <ruby>閉<rt>し</rt></ruby>めてもいいですか", "te-ichidan"],
+  ["<ruby>勉強<rt>べんきょう</rt></ruby>する", "<ruby>勉強<rt>べんきょう</rt></ruby>してもいいですか", ""],
+  ["<ruby>電話<rt>でんわ</rt></ruby>する", "<ruby>電話<rt>でんわ</rt></ruby>してもいいですか", ""],
+  ["ここへ <ruby>来<rt>く</rt></ruby>る", "ここへ <ruby>来<rt>き</rt></ruby>てもいいですか", ""]
 ];
 
 const vTeimasu30 = [
-  ["<ruby>本<rt>ほん</rt></ruby>を <ruby>読<rt>よ</rt></ruby>む", "<ruby>本<rt>ほん</rt></ruby>を <ruby>読<rt>よ</rt></ruby>んでいます"],
-  ["<ruby>音楽<rt>おんがく</rt></ruby>を <ruby>聞<rt>き</rt></ruby>く", "<ruby>音楽<rt>おんがく</rt></ruby>を <ruby>聞<rt>き</rt></ruby>いています"],
-  ["<ruby>手紙<rt>てがみ</rt></ruby>を <ruby>書<rt>か</rt></ruby>く", "<ruby>手紙<rt>てがみ</rt></ruby>を <ruby>書<rt>か</rt></ruby>いています"],
-  ["<ruby>友<rt>とも</rt></ruby>だちと <ruby>話<rt>はな</rt></ruby>す", "<ruby>友<rt>とも</rt></ruby>だちと <ruby>話<rt>はな</rt></ruby>しています"],
-  ["<ruby>水<rt>みず</rt></ruby>を <ruby>飲<rt>の</rt></ruby>む", "<ruby>水<rt>みず</rt></ruby>を <ruby>飲<rt>の</rt></ruby>んでいます"],
-  ["<ruby>会社<rt>かいしゃ</rt></ruby>で <ruby>働<rt>はたら</rt></ruby>く", "<ruby>会社<rt>かいしゃ</rt></ruby>で <ruby>働<rt>はたら</rt></ruby>いています"],
-  ["<ruby>駅<rt>えき</rt></ruby>まで <ruby>歩<rt>ある</rt></ruby>く", "<ruby>駅<rt>えき</rt></ruby>まで <ruby>歩<rt>ある</rt></ruby>いています"],
-  ["<ruby>公園<rt>こうえん</rt></ruby>で <ruby>遊<rt>あそ</rt></ruby>ぶ", "<ruby>公園<rt>こうえん</rt></ruby>で <ruby>遊<rt>あそ</rt></ruby>んでいます"],
-  ["<ruby>写真<rt>しゃしん</rt></ruby>を <ruby>撮<rt>と</rt></ruby>る", "<ruby>写真<rt>しゃしん</rt></ruby>を <ruby>撮<rt>と</rt></ruby>っています"],
-  ["ここで <ruby>待<rt>ま</rt></ruby>つ", "ここで <ruby>待<rt>ま</rt></ruby>っています"],
-  ["<ruby>日本語<rt>にほんご</rt></ruby>を <ruby>勉強<rt>べんきょう</rt></ruby>する", "<ruby>日本語<rt>にほんご</rt></ruby>を <ruby>勉強<rt>べんきょう</rt></ruby>しています"],
-  ["<ruby>電話<rt>でんわ</rt></ruby>する", "<ruby>電話<rt>でんわ</rt></ruby>しています"],
-  ["<ruby>掃除<rt>そうじ</rt></ruby>する", "<ruby>掃除<rt>そうじ</rt></ruby>しています"],
-  ["<ruby>料理<rt>りょうり</rt></ruby>する", "<ruby>料理<rt>りょうり</rt></ruby>しています"],
-  ["ごはんを <ruby>食<rt>た</rt></ruby>べる", "ごはんを <ruby>食<rt>た</rt></ruby>べています"],
-  ["テレビを <ruby>見<rt>み</rt></ruby>る", "テレビを <ruby>見<rt>み</rt></ruby>ています"],
-  ["<ruby>今<rt>いま</rt></ruby> <ruby>寝<rt>ね</rt></ruby>る", "<ruby>今<rt>いま</rt></ruby> <ruby>寝<rt>ね</rt></ruby>ています"],
-  ["<ruby>朝<rt>あさ</rt></ruby> <ruby>起<rt>お</rt></ruby>きる", "<ruby>朝<rt>あさ</rt></ruby> <ruby>起<rt>お</rt></ruby>きています"],
-  ["<ruby>服<rt>ふく</rt></ruby>を <ruby>着<rt>き</rt></ruby>る", "<ruby>服<rt>ふく</rt></ruby>を <ruby>着<rt>き</rt></ruby>ています"],
-  ["<ruby>本<rt>ほん</rt></ruby>を <ruby>借<rt>か</rt></ruby>りる", "<ruby>本<rt>ほん</rt></ruby>を <ruby>借<rt>か</rt></ruby>りています"],
-  ["<ruby>窓<rt>まど</rt></ruby>を <ruby>開<rt>あ</rt></ruby>ける", "<ruby>窓<rt>まど</rt></ruby>を <ruby>開<rt>あ</rt></ruby>けています"],
-  ["<ruby>ドア<rt>どあ</rt></ruby>を <ruby>閉<rt>し</rt></ruby>める", "<ruby>ドア<rt>どあ</rt></ruby>を <ruby>閉<rt>し</rt></ruby>めています"],
-  ["<ruby>名前<rt>なまえ</rt></ruby>を <ruby>覚<rt>おぼ</rt></ruby>える", "<ruby>名前<rt>なまえ</rt></ruby>を <ruby>覚<rt>おぼ</rt></ruby>えています"],
-  ["<ruby>友<rt>とも</rt></ruby>だちを <ruby>待<rt>ま</rt></ruby>つ", "<ruby>友<rt>とも</rt></ruby>だちを <ruby>待<rt>ま</rt></ruby>っています"],
-  ["<ruby>雨<rt>あめ</rt></ruby>が <ruby>降<rt>ふ</rt></ruby>る", "<ruby>雨<rt>あめ</rt></ruby>が <ruby>降<rt>ふ</rt></ruby>っています"],
-  ["<ruby>電車<rt>でんしゃ</rt></ruby>が <ruby>来<rt>く</rt></ruby>る", "<ruby>電車<rt>でんしゃ</rt></ruby>が <ruby>来<rt>き</rt></ruby>ています"],
-  ["<ruby>人<rt>ひと</rt></ruby>が <ruby>並<rt>なら</rt></ruby>ぶ", "<ruby>人<rt>ひと</rt></ruby>が <ruby>並<rt>なら</rt></ruby>んでいます"],
-  ["<ruby>字<rt>じ</rt></ruby>を <ruby>書<rt>か</rt></ruby>く", "<ruby>字<rt>じ</rt></ruby>を <ruby>書<rt>か</rt></ruby>いています"],
-  ["<ruby>問題<rt>もんだい</rt></ruby>を <ruby>考<rt>かんが</rt></ruby>える", "<ruby>問題<rt>もんだい</rt></ruby>を <ruby>考<rt>かんが</rt></ruby>えています"],
-  ["<ruby>答<rt>こた</rt></ruby>える", "<ruby>答<rt>こた</rt></ruby>えています"]
+  ["<ruby>写真<rt>しゃしん</rt></ruby>を <ruby>撮<rt>と</rt></ruby>る", "<ruby>写真<rt>しゃしん</rt></ruby>を <ruby>撮<rt>と</rt></ruby>っています", "te-utsuru"],
+  ["ここで <ruby>待<rt>ま</rt></ruby>つ", "ここで <ruby>待<rt>ま</rt></ruby>っています", "te-utsuru"],
+  ["<ruby>家<rt>いえ</rt></ruby>へ <ruby>帰<rt>かえ</rt></ruby>る", "<ruby>家<rt>いえ</rt></ruby>へ <ruby>帰<rt>かえ</rt></ruby>っています", "te-utsuru"],
+  ["<ruby>部屋<rt>へや</rt></ruby>に <ruby>入<rt>はい</rt></ruby>る", "<ruby>部屋<rt>へや</rt></ruby>に <ruby>入<rt>はい</rt></ruby>っています", "te-utsuru"],
+  ["<ruby>電話<rt>でんわ</rt></ruby>を <ruby>使<rt>つか</rt></ruby>う", "<ruby>電話<rt>でんわ</rt></ruby>を <ruby>使<rt>つか</rt></ruby>っています", "te-utsuru"],
+  ["<ruby>友<rt>とも</rt></ruby>だちに <ruby>会<rt>あ</rt></ruby>う", "<ruby>友<rt>とも</rt></ruby>だちに <ruby>会<rt>あ</rt></ruby>っています", "te-utsuru"],
+  ["<ruby>本<rt>ほん</rt></ruby>を <ruby>読<rt>よ</rt></ruby>む", "<ruby>本<rt>ほん</rt></ruby>を <ruby>読<rt>よ</rt></ruby>んでいます", "te-mubunu"],
+  ["<ruby>水<rt>みず</rt></ruby>を <ruby>飲<rt>の</rt></ruby>む", "<ruby>水<rt>みず</rt></ruby>を <ruby>飲<rt>の</rt></ruby>んでいます", "te-mubunu"],
+  ["<ruby>公園<rt>こうえん</rt></ruby>で <ruby>遊<rt>あそ</rt></ruby>ぶ", "<ruby>公園<rt>こうえん</rt></ruby>で <ruby>遊<rt>あそ</rt></ruby>んでいます", "te-mubunu"],
+  ["<ruby>人<rt>ひと</rt></ruby>が <ruby>並<rt>なら</rt></ruby>ぶ", "<ruby>人<rt>ひと</rt></ruby>が <ruby>並<rt>なら</rt></ruby>んでいます", "te-mubunu"],
+  ["<ruby>少<rt>すこ</rt></ruby>し <ruby>休<rt>やす</rt></ruby>む", "<ruby>少<rt>すこ</rt></ruby>し <ruby>休<rt>やす</rt></ruby>んでいます", "te-mubunu"],
+  ["<ruby>音楽<rt>おんがく</rt></ruby>を <ruby>聞<rt>き</rt></ruby>く", "<ruby>音楽<rt>おんがく</rt></ruby>を <ruby>聞<rt>き</rt></ruby>いています", "te-ku"],
+  ["<ruby>手紙<rt>てがみ</rt></ruby>を <ruby>書<rt>か</rt></ruby>く", "<ruby>手紙<rt>てがみ</rt></ruby>を <ruby>書<rt>か</rt></ruby>いています", "te-ku"],
+  ["<ruby>会社<rt>かいしゃ</rt></ruby>で <ruby>働<rt>はたら</rt></ruby>く", "<ruby>会社<rt>かいしゃ</rt></ruby>で <ruby>働<rt>はたら</rt></ruby>いています", "te-ku"],
+  ["<ruby>駅<rt>えき</rt></ruby>まで <ruby>歩<rt>ある</rt></ruby>く", "<ruby>駅<rt>えき</rt></ruby>まで <ruby>歩<rt>ある</rt></ruby>いています", "te-ku"],
+  ["プールで <ruby>泳<rt>およ</rt></ruby>ぐ", "プールで <ruby>泳<rt>およ</rt></ruby>いでいます", "te-gu"],
+  ["<ruby>友<rt>とも</rt></ruby>だちと <ruby>話<rt>はな</rt></ruby>す", "<ruby>友<rt>とも</rt></ruby>だちと <ruby>話<rt>はな</rt></ruby>しています", "te-su"],
+  ["<ruby>電気<rt>でんき</rt></ruby>を <ruby>消<rt>け</rt></ruby>す", "<ruby>電気<rt>でんき</rt></ruby>を <ruby>消<rt>け</rt></ruby>しています", "te-su"],
+  ["<ruby>宿題<rt>しゅくだい</rt></ruby>を <ruby>出<rt>だ</rt></ruby>す", "<ruby>宿題<rt>しゅくだい</rt></ruby>を <ruby>出<rt>だ</rt></ruby>しています", "te-su"],
+  ["<ruby>鍵<rt>かぎ</rt></ruby>を <ruby>探<rt>さが</rt></ruby>す", "<ruby>鍵<rt>かぎ</rt></ruby>を <ruby>探<rt>さが</rt></ruby>しています", "te-su"],
+  ["<ruby>学校<rt>がっこう</rt></ruby>へ <ruby>行<rt>い</rt></ruby>く", "<ruby>学校<rt>がっこう</rt></ruby>へ <ruby>行<rt>い</rt></ruby>っています", "te-iku"],
+  ["ごはんを <ruby>食<rt>た</rt></ruby>べる", "ごはんを <ruby>食<rt>た</rt></ruby>べています", "te-ichidan"],
+  ["テレビを <ruby>見<rt>み</rt></ruby>る", "テレビを <ruby>見<rt>み</rt></ruby>ています", "te-ichidan"],
+  ["<ruby>今<rt>いま</rt></ruby> <ruby>寝<rt>ね</rt></ruby>る", "<ruby>今<rt>いま</rt></ruby> <ruby>寝<rt>ね</rt></ruby>ています", "te-ichidan"],
+  ["<ruby>朝<rt>あさ</rt></ruby> <ruby>起<rt>お</rt></ruby>きる", "<ruby>朝<rt>あさ</rt></ruby> <ruby>起<rt>お</rt></ruby>きています", "te-ichidan"],
+  ["<ruby>本<rt>ほん</rt></ruby>を <ruby>借<rt>か</rt></ruby>りる", "<ruby>本<rt>ほん</rt></ruby>を <ruby>借<rt>か</rt></ruby>りています", "te-ichidan"],
+  ["<ruby>窓<rt>まど</rt></ruby>を <ruby>開<rt>あ</rt></ruby>ける", "<ruby>窓<rt>まど</rt></ruby>を <ruby>開<rt>あ</rt></ruby>けています", "te-ichidan"],
+  ["<ruby>勉強<rt>べんきょう</rt></ruby>する", "<ruby>勉強<rt>べんきょう</rt></ruby>しています", ""],
+  ["<ruby>電話<rt>でんわ</rt></ruby>する", "<ruby>電話<rt>でんわ</rt></ruby>しています", ""],
+  ["<ruby>電車<rt>でんしゃ</rt></ruby>が <ruby>来<rt>く</rt></ruby>る", "<ruby>電車<rt>でんしゃ</rt></ruby>が <ruby>来<rt>き</rt></ruby>ています", ""]
 ];
 
 const vTari30 = [
@@ -2243,69 +2347,104 @@ const vTari30 = [
 ];
 
 const vTara30 = [
-  ["<ruby>家<rt>いえ</rt></ruby>に <ruby>帰<rt>かえ</rt></ruby>る・<ruby>電話<rt>でんわ</rt></ruby>する", "<ruby>家<rt>いえ</rt></ruby>に <ruby>帰<rt>かえ</rt></ruby>ったら、<ruby>電話<rt>でんわ</rt></ruby>します"],
-  ["<ruby>学校<rt>がっこう</rt></ruby>へ <ruby>行<rt>い</rt></ruby>く・<ruby>先生<rt>せんせい</rt></ruby>に <ruby>聞<rt>き</rt></ruby>く", "<ruby>学校<rt>がっこう</rt></ruby>へ <ruby>行<rt>い</rt></ruby>ったら、<ruby>先生<rt>せんせい</rt></ruby>に <ruby>聞<rt>き</rt></ruby>きます"],
-  ["<ruby>雨<rt>あめ</rt></ruby>が <ruby>降<rt>ふ</rt></ruby>る・<ruby>家<rt>いえ</rt></ruby>に いる", "<ruby>雨<rt>あめ</rt></ruby>が <ruby>降<rt>ふ</rt></ruby>ったら、<ruby>家<rt>いえ</rt></ruby>に います"],
-  ["<ruby>時間<rt>じかん</rt></ruby>が ある・<ruby>行<rt>い</rt></ruby>く", "<ruby>時間<rt>じかん</rt></ruby>が あったら、<ruby>行<rt>い</rt></ruby>きます"],
-  ["<ruby>日本<rt>にほん</rt></ruby>へ <ruby>行<rt>い</rt></ruby>く・<ruby>寿司<rt>すし</rt></ruby>を <ruby>食<rt>た</rt></ruby>べる", "<ruby>日本<rt>にほん</rt></ruby>へ <ruby>行<rt>い</rt></ruby>ったら、<ruby>寿司<rt>すし</rt></ruby>を <ruby>食<rt>た</rt></ruby>べます"],
-  ["<ruby>分<rt>わ</rt></ruby>かる・<ruby>手<rt>て</rt></ruby>を <ruby>上<rt>あ</rt></ruby>げる", "<ruby>分<rt>わ</rt></ruby>かったら、<ruby>手<rt>て</rt></ruby>を <ruby>上<rt>あ</rt></ruby>げてください"],
-  ["<ruby>朝<rt>あさ</rt></ruby> <ruby>起<rt>お</rt></ruby>きる・<ruby>顔<rt>かお</rt></ruby>を <ruby>洗<rt>あら</rt></ruby>う", "<ruby>朝<rt>あさ</rt></ruby> <ruby>起<rt>お</rt></ruby>きたら、<ruby>顔<rt>かお</rt></ruby>を <ruby>洗<rt>あら</rt></ruby>います"],
-  ["<ruby>宿題<rt>しゅくだい</rt></ruby>を <ruby>見<rt>み</rt></ruby>る・<ruby>出<rt>だ</rt></ruby>す", "<ruby>宿題<rt>しゅくだい</rt></ruby>を <ruby>見<rt>み</rt></ruby>たら、<ruby>出<rt>だ</rt></ruby>してください"],
-  ["<ruby>質問<rt>しつもん</rt></ruby>が ある・<ruby>聞<rt>き</rt></ruby>く", "<ruby>質問<rt>しつもん</rt></ruby>が あったら、<ruby>聞<rt>き</rt></ruby>いてください"],
-  ["<ruby>学校<rt>がっこう</rt></ruby>へ <ruby>来<rt>く</rt></ruby>る・<ruby>連絡<rt>れんらく</rt></ruby>する", "<ruby>学校<rt>がっこう</rt></ruby>へ <ruby>来<rt>き</rt></ruby>たら、<ruby>連絡<rt>れんらく</rt></ruby>してください"],
-  ["<ruby>友<rt>とも</rt></ruby>だちに <ruby>会<rt>あ</rt></ruby>う・<ruby>話<rt>はな</rt></ruby>す", "<ruby>友<rt>とも</rt></ruby>だちに <ruby>会<rt>あ</rt></ruby>ったら、<ruby>話<rt>はな</rt></ruby>します"],
-  ["<ruby>本<rt>ほん</rt></ruby>を <ruby>読<rt>よ</rt></ruby>む・<ruby>感想<rt>かんそう</rt></ruby>を <ruby>書<rt>か</rt></ruby>く", "<ruby>本<rt>ほん</rt></ruby>を <ruby>読<rt>よ</rt></ruby>んだら、<ruby>感想<rt>かんそう</rt></ruby>を <ruby>書<rt>か</rt></ruby>きます"],
-  ["<ruby>音楽<rt>おんがく</rt></ruby>を <ruby>聞<rt>き</rt></ruby>く・<ruby>歌<rt>うた</rt></ruby>う", "<ruby>音楽<rt>おんがく</rt></ruby>を <ruby>聞<rt>き</rt></ruby>いたら、<ruby>歌<rt>うた</rt></ruby>います"],
-  ["<ruby>駅<rt>えき</rt></ruby>に <ruby>着<rt>つ</rt></ruby>く・<ruby>電話<rt>でんわ</rt></ruby>する", "<ruby>駅<rt>えき</rt></ruby>に <ruby>着<rt>つ</rt></ruby>いたら、<ruby>電話<rt>でんわ</rt></ruby>します"],
-  ["<ruby>買<rt>か</rt></ruby>い<ruby>物<rt>もの</rt></ruby>へ <ruby>行<rt>い</rt></ruby>く・<ruby>牛乳<rt>ぎゅうにゅう</rt></ruby>を <ruby>買<rt>か</rt></ruby>う", "<ruby>買<rt>か</rt></ruby>い<ruby>物<rt>もの</rt></ruby>へ <ruby>行<rt>い</rt></ruby>ったら、<ruby>牛乳<rt>ぎゅうにゅう</rt></ruby>を <ruby>買<rt>か</rt></ruby>います"],
-  ["<ruby>料理<rt>りょうり</rt></ruby>を <ruby>作<rt>つく</rt></ruby>る・<ruby>食<rt>た</rt></ruby>べる", "<ruby>料理<rt>りょうり</rt></ruby>を <ruby>作<rt>つく</rt></ruby>ったら、<ruby>食<rt>た</rt></ruby>べます"],
-  ["<ruby>水<rt>みず</rt></ruby>を <ruby>飲<rt>の</rt></ruby>む・<ruby>薬<rt>くすり</rt></ruby>を <ruby>飲<rt>の</rt></ruby>む", "<ruby>水<rt>みず</rt></ruby>を <ruby>飲<rt>の</rt></ruby>んだら、<ruby>薬<rt>くすり</rt></ruby>を <ruby>飲<rt>の</rt></ruby>みます"],
-  ["<ruby>部屋<rt>へや</rt></ruby>に <ruby>入<rt>はい</rt></ruby>る・<ruby>電気<rt>でんき</rt></ruby>を つける", "<ruby>部屋<rt>へや</rt></ruby>に <ruby>入<rt>はい</rt></ruby>ったら、<ruby>電気<rt>でんき</rt></ruby>を つけます"],
-  ["<ruby>授業<rt>じゅぎょう</rt></ruby>が <ruby>終<rt>お</rt></ruby>わる・<ruby>帰<rt>かえ</rt></ruby>る", "<ruby>授業<rt>じゅぎょう</rt></ruby>が <ruby>終<rt>お</rt></ruby>わったら、<ruby>帰<rt>かえ</rt></ruby>ります"],
-  ["<ruby>映画<rt>えいが</rt></ruby>を <ruby>見<rt>み</rt></ruby>る・<ruby>寝<rt>ね</rt></ruby>る", "<ruby>映画<rt>えいが</rt></ruby>を <ruby>見<rt>み</rt></ruby>たら、<ruby>寝<rt>ね</rt></ruby>ます"],
-  ["<ruby>昼<rt>ひる</rt></ruby>ごはんを <ruby>食<rt>た</rt></ruby>べる・<ruby>勉強<rt>べんきょう</rt></ruby>する", "<ruby>昼<rt>ひる</rt></ruby>ごはんを <ruby>食<rt>た</rt></ruby>べたら、<ruby>勉強<rt>べんきょう</rt></ruby>します"],
-  ["<ruby>窓<rt>まど</rt></ruby>を <ruby>開<rt>あ</rt></ruby>ける・<ruby>空気<rt>くうき</rt></ruby>を <ruby>入<rt>い</rt></ruby>れる", "<ruby>窓<rt>まど</rt></ruby>を <ruby>開<rt>あ</rt></ruby>けたら、<ruby>空気<rt>くうき</rt></ruby>を <ruby>入<rt>い</rt></ruby>れます"],
-  ["<ruby>ドア<rt>どあ</rt></ruby>を <ruby>閉<rt>し</rt></ruby>める・<ruby>電気<rt>でんき</rt></ruby>を <ruby>消<rt>け</rt></ruby>す", "<ruby>ドア<rt>どあ</rt></ruby>を <ruby>閉<rt>し</rt></ruby>めたら、<ruby>電気<rt>でんき</rt></ruby>を <ruby>消<rt>け</rt></ruby>します"],
-  ["<ruby>名前<rt>なまえ</rt></ruby>を <ruby>書<rt>か</rt></ruby>く・<ruby>紙<rt>かみ</rt></ruby>を <ruby>出<rt>だ</rt></ruby>す", "<ruby>名前<rt>なまえ</rt></ruby>を <ruby>書<rt>か</rt></ruby>いたら、<ruby>紙<rt>かみ</rt></ruby>を <ruby>出<rt>だ</rt></ruby>してください"],
-  ["<ruby>先生<rt>せんせい</rt></ruby>に <ruby>聞<rt>き</rt></ruby>く・<ruby>答<rt>こた</rt></ruby>える", "<ruby>先生<rt>せんせい</rt></ruby>に <ruby>聞<rt>き</rt></ruby>いたら、<ruby>答<rt>こた</rt></ruby>えます"],
-  ["<ruby>友<rt>とも</rt></ruby>だちを <ruby>待<rt>ま</rt></ruby>つ・<ruby>一緒<rt>いっしょ</rt></ruby>に <ruby>行<rt>い</rt></ruby>く", "<ruby>友<rt>とも</rt></ruby>だちを <ruby>待<rt>ま</rt></ruby>ったら、<ruby>一緒<rt>いっしょ</rt></ruby>に <ruby>行<rt>い</rt></ruby>きます"],
-  ["<ruby>宿題<rt>しゅくだい</rt></ruby>を する・<ruby>休<rt>やす</rt></ruby>む", "<ruby>宿題<rt>しゅくだい</rt></ruby>を したら、<ruby>休<rt>やす</rt></ruby>みます"],
-  ["<ruby>掃除<rt>そうじ</rt></ruby>する・<ruby>部屋<rt>へや</rt></ruby>を <ruby>出<rt>で</rt></ruby>る", "<ruby>掃除<rt>そうじ</rt></ruby>したら、<ruby>部屋<rt>へや</rt></ruby>を <ruby>出<rt>で</rt></ruby>ます"],
-  ["<ruby>電話<rt>でんわ</rt></ruby>する・<ruby>寝<rt>ね</rt></ruby>る", "<ruby>電話<rt>でんわ</rt></ruby>したら、<ruby>寝<rt>ね</rt></ruby>ます"],
-  ["ここへ <ruby>来<rt>く</rt></ruby>る・<ruby>座<rt>すわ</rt></ruby>る", "ここへ <ruby>来<rt>き</rt></ruby>たら、<ruby>座<rt>すわ</rt></ruby>ってください"]
+  ["<ruby>家<rt>いえ</rt></ruby>に <ruby>帰<rt>かえ</rt></ruby>る・<ruby>電話<rt>でんわ</rt></ruby>する", "<ruby>家<rt>いえ</rt></ruby>に <ruby>帰<rt>かえ</rt></ruby>ったら、<ruby>電話<rt>でんわ</rt></ruby>します", "te-utsuru"],
+  ["<ruby>写真<rt>しゃしん</rt></ruby>を <ruby>撮<rt>と</rt></ruby>る・<ruby>見<rt>み</rt></ruby>せる", "<ruby>写真<rt>しゃしん</rt></ruby>を <ruby>撮<rt>と</rt></ruby>ったら、<ruby>見<rt>み</rt></ruby>せます", "te-utsuru"],
+  ["<ruby>授業<rt>じゅぎょう</rt></ruby>が <ruby>終<rt>お</rt></ruby>わる・<ruby>帰<rt>かえ</rt></ruby>る", "<ruby>授業<rt>じゅぎょう</rt></ruby>が <ruby>終<rt>お</rt></ruby>わったら、<ruby>帰<rt>かえ</rt></ruby>ります", "te-utsuru"],
+  ["<ruby>部屋<rt>へや</rt></ruby>に <ruby>入<rt>はい</rt></ruby>る・<ruby>電気<rt>でんき</rt></ruby>をつける", "<ruby>部屋<rt>へや</rt></ruby>に <ruby>入<rt>はい</rt></ruby>ったら、<ruby>電気<rt>でんき</rt></ruby>をつけます", "te-utsuru"],
+  ["<ruby>友<rt>とも</rt></ruby>だちに <ruby>会<rt>あ</rt></ruby>う・<ruby>話<rt>はな</rt></ruby>す", "<ruby>友<rt>とも</rt></ruby>だちに <ruby>会<rt>あ</rt></ruby>ったら、<ruby>話<rt>はな</rt></ruby>します", "te-utsuru"],
+  ["<ruby>水<rt>みず</rt></ruby>を <ruby>飲<rt>の</rt></ruby>む・<ruby>薬<rt>くすり</rt></ruby>を <ruby>飲<rt>の</rt></ruby>む", "<ruby>水<rt>みず</rt></ruby>を <ruby>飲<rt>の</rt></ruby>んだら、<ruby>薬<rt>くすり</rt></ruby>を <ruby>飲<rt>の</rt></ruby>みます", "te-mubunu"],
+  ["<ruby>本<rt>ほん</rt></ruby>を <ruby>読<rt>よ</rt></ruby>む・<ruby>感想<rt>かんそう</rt></ruby>を <ruby>書<rt>か</rt></ruby>く", "<ruby>本<rt>ほん</rt></ruby>を <ruby>読<rt>よ</rt></ruby>んだら、<ruby>感想<rt>かんそう</rt></ruby>を <ruby>書<rt>か</rt></ruby>きます", "te-mubunu"],
+  ["<ruby>友<rt>とも</rt></ruby>だちを <ruby>呼<rt>よ</rt></ruby>ぶ・<ruby>待<rt>ま</rt></ruby>つ", "<ruby>友<rt>とも</rt></ruby>だちを <ruby>呼<rt>よ</rt></ruby>んだら、<ruby>待<rt>ま</rt></ruby>ちます", "te-mubunu"],
+  ["<ruby>遊<rt>あそ</rt></ruby>ぶ・<ruby>帰<rt>かえ</rt></ruby>る", "<ruby>遊<rt>あそ</rt></ruby>んだら、<ruby>帰<rt>かえ</rt></ruby>ります", "te-mubunu"],
+  ["<ruby>休<rt>やす</rt></ruby>む・<ruby>勉強<rt>べんきょう</rt></ruby>する", "<ruby>休<rt>やす</rt></ruby>んだら、<ruby>勉強<rt>べんきょう</rt></ruby>します", "te-mubunu"],
+  ["<ruby>名前<rt>なまえ</rt></ruby>を <ruby>書<rt>か</rt></ruby>く・<ruby>紙<rt>かみ</rt></ruby>を <ruby>出<rt>だ</rt></ruby>してください", "<ruby>名前<rt>なまえ</rt></ruby>を <ruby>書<rt>か</rt></ruby>いたら、<ruby>紙<rt>かみ</rt></ruby>を <ruby>出<rt>だ</rt></ruby>してください", "te-ku"],
+  ["<ruby>先生<rt>せんせい</rt></ruby>に <ruby>聞<rt>き</rt></ruby>く・<ruby>答<rt>こた</rt></ruby>える", "<ruby>先生<rt>せんせい</rt></ruby>に <ruby>聞<rt>き</rt></ruby>いたら、<ruby>答<rt>こた</rt></ruby>えます", "te-ku"],
+  ["<ruby>駅<rt>えき</rt></ruby>まで <ruby>歩<rt>ある</rt></ruby>く・<ruby>休<rt>やす</rt></ruby>む", "<ruby>駅<rt>えき</rt></ruby>まで <ruby>歩<rt>ある</rt></ruby>いたら、<ruby>休<rt>やす</rt></ruby>みます", "te-ku"],
+  ["<ruby>仕事<rt>しごと</rt></ruby>が <ruby>続<rt>つづ</rt></ruby>く・<ruby>疲<rt>つか</rt></ruby>れる", "<ruby>仕事<rt>しごと</rt></ruby>が <ruby>続<rt>つづ</rt></ruby>いたら、<ruby>疲<rt>つか</rt></ruby>れます", "te-ku"],
+  ["プールで <ruby>泳<rt>およ</rt></ruby>ぐ・シャワーを <ruby>浴<rt>あ</rt></ruby>びる", "プールで <ruby>泳<rt>およ</rt></ruby>いだら、シャワーを <ruby>浴<rt>あ</rt></ruby>びます", "te-gu"],
+  ["<ruby>先生<rt>せんせい</rt></ruby>に <ruby>話<rt>はな</rt></ruby>す・<ruby>安心<rt>あんしん</rt></ruby>する", "<ruby>先生<rt>せんせい</rt></ruby>に <ruby>話<rt>はな</rt></ruby>したら、<ruby>安心<rt>あんしん</rt></ruby>します", "te-su"],
+  ["<ruby>電気<rt>でんき</rt></ruby>を <ruby>消<rt>け</rt></ruby>す・<ruby>寝<rt>ね</rt></ruby>る", "<ruby>電気<rt>でんき</rt></ruby>を <ruby>消<rt>け</rt></ruby>したら、<ruby>寝<rt>ね</rt></ruby>ます", "te-su"],
+  ["<ruby>宿題<rt>しゅくだい</rt></ruby>を <ruby>出<rt>だ</rt></ruby>す・<ruby>帰<rt>かえ</rt></ruby>る", "<ruby>宿題<rt>しゅくだい</rt></ruby>を <ruby>出<rt>だ</rt></ruby>したら、<ruby>帰<rt>かえ</rt></ruby>ります", "te-su"],
+  ["<ruby>鍵<rt>かぎ</rt></ruby>を <ruby>探<rt>さが</rt></ruby>す・<ruby>教<rt>おし</rt></ruby>えてください", "<ruby>鍵<rt>かぎ</rt></ruby>を <ruby>探<rt>さが</rt></ruby>したら、<ruby>教<rt>おし</rt></ruby>えてください", "te-su"],
+  ["<ruby>日本<rt>にほん</rt></ruby>へ <ruby>行<rt>い</rt></ruby>く・<ruby>寿司<rt>すし</rt></ruby>を <ruby>食<rt>た</rt></ruby>べる", "<ruby>日本<rt>にほん</rt></ruby>へ <ruby>行<rt>い</rt></ruby>ったら、<ruby>寿司<rt>すし</rt></ruby>を <ruby>食<rt>た</rt></ruby>べます", "te-iku"],
+  ["<ruby>昼<rt>ひる</rt></ruby>ごはんを <ruby>食<rt>た</rt></ruby>べる・<ruby>勉強<rt>べんきょう</rt></ruby>する", "<ruby>昼<rt>ひる</rt></ruby>ごはんを <ruby>食<rt>た</rt></ruby>べたら、<ruby>勉強<rt>べんきょう</rt></ruby>します", "te-ichidan"],
+  ["<ruby>映画<rt>えいが</rt></ruby>を <ruby>見<rt>み</rt></ruby>る・<ruby>寝<rt>ね</rt></ruby>る", "<ruby>映画<rt>えいが</rt></ruby>を <ruby>見<rt>み</rt></ruby>たら、<ruby>寝<rt>ね</rt></ruby>ます", "te-ichidan"],
+  ["<ruby>朝<rt>あさ</rt></ruby> <ruby>起<rt>お</rt></ruby>きる・<ruby>顔<rt>かお</rt></ruby>を <ruby>洗<rt>あら</rt></ruby>う", "<ruby>朝<rt>あさ</rt></ruby> <ruby>起<rt>お</rt></ruby>きたら、<ruby>顔<rt>かお</rt></ruby>を <ruby>洗<rt>あら</rt></ruby>います", "te-ichidan"],
+  ["<ruby>窓<rt>まど</rt></ruby>を <ruby>開<rt>あ</rt></ruby>ける・<ruby>空気<rt>くうき</rt></ruby>を <ruby>入<rt>い</rt></ruby>れる", "<ruby>窓<rt>まど</rt></ruby>を <ruby>開<rt>あ</rt></ruby>けたら、<ruby>空気<rt>くうき</rt></ruby>を <ruby>入<rt>い</rt></ruby>れます", "te-ichidan"],
+  ["<ruby>本<rt>ほん</rt></ruby>を <ruby>借<rt>か</rt></ruby>りる・<ruby>読<rt>よ</rt></ruby>む", "<ruby>本<rt>ほん</rt></ruby>を <ruby>借<rt>か</rt></ruby>りたら、<ruby>読<rt>よ</rt></ruby>みます", "te-ichidan"],
+  ["<ruby>先生<rt>せんせい</rt></ruby>に <ruby>教<rt>おし</rt></ruby>える・<ruby>帰<rt>かえ</rt></ruby>る", "<ruby>先生<rt>せんせい</rt></ruby>に <ruby>教<rt>おし</rt></ruby>えたら、<ruby>帰<rt>かえ</rt></ruby>ります", "te-ichidan"],
+  ["<ruby>宿題<rt>しゅくだい</rt></ruby>を する・<ruby>休<rt>やす</rt></ruby>む", "<ruby>宿題<rt>しゅくだい</rt></ruby>を したら、<ruby>休<rt>やす</rt></ruby>みます", ""],
+  ["<ruby>電話<rt>でんわ</rt></ruby>する・<ruby>寝<rt>ね</rt></ruby>る", "<ruby>電話<rt>でんわ</rt></ruby>したら、<ruby>寝<rt>ね</rt></ruby>ます", ""],
+  ["<ruby>掃除<rt>そうじ</rt></ruby>する・<ruby>部屋<rt>へや</rt></ruby>を <ruby>出<rt>で</rt></ruby>る", "<ruby>掃除<rt>そうじ</rt></ruby>したら、<ruby>部屋<rt>へや</rt></ruby>を <ruby>出<rt>で</rt></ruby>ます", ""],
+  ["ここへ <ruby>来<rt>く</rt></ruby>る・<ruby>座<rt>すわ</rt></ruby>ってください", "ここへ <ruby>来<rt>き</rt></ruby>たら、<ruby>座<rt>すわ</rt></ruby>ってください", ""]
+];
+
+
+const vTaKotoArimasu30 = [
+  ["<ruby>日本<rt>にほん</rt></ruby>の <ruby>歌<rt>うた</rt></ruby>を <ruby>歌<rt>うた</rt></ruby>う", "<ruby>日本<rt>にほん</rt></ruby>の <ruby>歌<rt>うた</rt></ruby>を <ruby>歌<rt>うた</rt></ruby>ったことがあります", "te-utsuru"],
+  ["<ruby>新幹線<rt>しんかんせん</rt></ruby>に <ruby>乗<rt>の</rt></ruby>る", "<ruby>新幹線<rt>しんかんせん</rt></ruby>に <ruby>乗<rt>の</rt></ruby>ったことがあります", "te-utsuru"],
+  ["<ruby>写真<rt>しゃしん</rt></ruby>を <ruby>撮<rt>と</rt></ruby>る", "<ruby>写真<rt>しゃしん</rt></ruby>を <ruby>撮<rt>と</rt></ruby>ったことがあります", "te-utsuru"],
+  ["<ruby>山<rt>やま</rt></ruby>に <ruby>登<rt>のぼ</rt></ruby>る", "<ruby>山<rt>やま</rt></ruby>に <ruby>登<rt>のぼ</rt></ruby>ったことがあります", "te-utsuru"],
+  ["<ruby>温泉<rt>おんせん</rt></ruby>に <ruby>入<rt>はい</rt></ruby>る", "<ruby>温泉<rt>おんせん</rt></ruby>に <ruby>入<rt>はい</rt></ruby>ったことがあります", "te-utsuru"],
+  ["<ruby>日本<rt>にほん</rt></ruby>の <ruby>料理<rt>りょうり</rt></ruby>を <ruby>作<rt>つく</rt></ruby>る", "<ruby>日本<rt>にほん</rt></ruby>の <ruby>料理<rt>りょうり</rt></ruby>を <ruby>作<rt>つく</rt></ruby>ったことがあります", "te-utsuru"],
+  ["<ruby>友<rt>とも</rt></ruby>だちに <ruby>会<rt>あ</rt></ruby>う", "<ruby>友<rt>とも</rt></ruby>だちに <ruby>会<rt>あ</rt></ruby>ったことがあります", "te-utsuru"],
+  ["<ruby>空港<rt>くうこう</rt></ruby>で <ruby>待<rt>ま</rt></ruby>つ", "<ruby>空港<rt>くうこう</rt></ruby>で <ruby>待<rt>ま</rt></ruby>ったことがあります", "te-utsuru"],
+  ["<ruby>本<rt>ほん</rt></ruby>を <ruby>読<rt>よ</rt></ruby>む", "<ruby>本<rt>ほん</rt></ruby>を <ruby>読<rt>よ</rt></ruby>んだことがあります", "te-mubunu"],
+  ["<ruby>抹茶<rt>まっちゃ</rt></ruby>を <ruby>飲<rt>の</rt></ruby>む", "<ruby>抹茶<rt>まっちゃ</rt></ruby>を <ruby>飲<rt>の</rt></ruby>んだことがあります", "te-mubunu"],
+  ["<ruby>友<rt>とも</rt></ruby>だちを <ruby>呼<rt>よ</rt></ruby>ぶ", "<ruby>友<rt>とも</rt></ruby>だちを <ruby>呼<rt>よ</rt></ruby>んだことがあります", "te-mubunu"],
+  ["<ruby>手紙<rt>てがみ</rt></ruby>を <ruby>書<rt>か</rt></ruby>く", "<ruby>手紙<rt>てがみ</rt></ruby>を <ruby>書<rt>か</rt></ruby>いたことがあります", "te-ku"],
+  ["<ruby>日本人<rt>にほんじん</rt></ruby>に <ruby>道<rt>みち</rt></ruby>を <ruby>聞<rt>き</rt></ruby>く", "<ruby>日本人<rt>にほんじん</rt></ruby>に <ruby>道<rt>みち</rt></ruby>を <ruby>聞<rt>き</rt></ruby>いたことがあります", "te-ku"],
+  ["<ruby>駅<rt>えき</rt></ruby>まで <ruby>歩<rt>ある</rt></ruby>く", "<ruby>駅<rt>えき</rt></ruby>まで <ruby>歩<rt>ある</rt></ruby>いたことがあります", "te-ku"],
+  ["<ruby>海<rt>うみ</rt></ruby>で <ruby>泳<rt>およ</rt></ruby>ぐ", "<ruby>海<rt>うみ</rt></ruby>で <ruby>泳<rt>およ</rt></ruby>いだことがあります", "te-gu"],
+  ["<ruby>日本語<rt>にほんご</rt></ruby>で <ruby>話<rt>はな</rt></ruby>す", "<ruby>日本語<rt>にほんご</rt></ruby>で <ruby>話<rt>はな</rt></ruby>したことがあります", "te-su"],
+  ["<ruby>電気<rt>でんき</rt></ruby>を <ruby>消<rt>け</rt></ruby>す", "<ruby>電気<rt>でんき</rt></ruby>を <ruby>消<rt>け</rt></ruby>したことがあります", "te-su"],
+  ["<ruby>日本<rt>にほん</rt></ruby>へ <ruby>行<rt>い</rt></ruby>く", "<ruby>日本<rt>にほん</rt></ruby>へ <ruby>行<rt>い</rt></ruby>ったことがあります", "te-iku"],
+  ["<ruby>寿司<rt>すし</rt></ruby>を <ruby>食<rt>た</rt></ruby>べる", "<ruby>寿司<rt>すし</rt></ruby>を <ruby>食<rt>た</rt></ruby>べたことがあります", "te-ichidan"],
+  ["<ruby>富士山<rt>ふじさん</rt></ruby>を <ruby>見<rt>み</rt></ruby>る", "<ruby>富士山<rt>ふじさん</rt></ruby>を <ruby>見<rt>み</rt></ruby>たことがあります", "te-ichidan"],
+  ["<ruby>映画<rt>えいが</rt></ruby>を <ruby>見<rt>み</rt></ruby>る", "<ruby>映画<rt>えいが</rt></ruby>を <ruby>見<rt>み</rt></ruby>たことがあります", "te-ichidan"],
+  ["<ruby>着物<rt>きもの</rt></ruby>を <ruby>着<rt>き</rt></ruby>る", "<ruby>着物<rt>きもの</rt></ruby>を <ruby>着<rt>き</rt></ruby>たことがあります", "te-ichidan"],
+  ["<ruby>雪<rt>ゆき</rt></ruby>を <ruby>見<rt>み</rt></ruby>る", "<ruby>雪<rt>ゆき</rt></ruby>を <ruby>見<rt>み</rt></ruby>たことがあります", "te-ichidan"],
+  ["<ruby>漢字<rt>かんじ</rt></ruby>を <ruby>覚<rt>おぼ</rt></ruby>える", "<ruby>漢字<rt>かんじ</rt></ruby>を <ruby>覚<rt>おぼ</rt></ruby>えたことがあります", "te-ichidan"],
+  ["<ruby>日本語<rt>にほんご</rt></ruby>を <ruby>教<rt>おし</rt></ruby>える", "<ruby>日本語<rt>にほんご</rt></ruby>を <ruby>教<rt>おし</rt></ruby>えたことがあります", "te-ichidan"],
+  ["<ruby>自転車<rt>じてんしゃ</rt></ruby>を <ruby>借<rt>か</rt></ruby>りる", "<ruby>自転車<rt>じてんしゃ</rt></ruby>を <ruby>借<rt>か</rt></ruby>りたことがあります", "te-ichidan"],
+  ["<ruby>早<rt>はや</rt></ruby>く <ruby>起<rt>お</rt></ruby>きる", "<ruby>早<rt>はや</rt></ruby>く <ruby>起<rt>お</rt></ruby>きたことがあります", "te-ichidan"],
+  ["<ruby>部屋<rt>へや</rt></ruby>を <ruby>掃除<rt>そうじ</rt></ruby>する", "<ruby>部屋<rt>へや</rt></ruby>を <ruby>掃除<rt>そうじ</rt></ruby>したことがあります", ""],
+  ["<ruby>日本語<rt>にほんご</rt></ruby>を <ruby>勉強<rt>べんきょう</rt></ruby>する", "<ruby>日本語<rt>にほんご</rt></ruby>を <ruby>勉強<rt>べんきょう</rt></ruby>したことがあります", ""],
+  ["<ruby>京都<rt>きょうと</rt></ruby>へ <ruby>来<rt>く</rt></ruby>る", "<ruby>京都<rt>きょうと</rt></ruby>へ <ruby>来<rt>き</rt></ruby>たことがあります", ""]
+
 ];
 
 const vTekimasu30 = [
-  ["<ruby>飲<rt>の</rt></ruby>み<ruby>物<rt>もの</rt></ruby>を <ruby>買<rt>か</rt></ruby>う", "<ruby>飲<rt>の</rt></ruby>み<ruby>物<rt>もの</rt></ruby>を <ruby>買<rt>か</rt></ruby>ってきます"],
-  ["<ruby>先生<rt>せんせい</rt></ruby>に <ruby>聞<rt>き</rt></ruby>く", "<ruby>先生<rt>せんせい</rt></ruby>に <ruby>聞<rt>き</rt></ruby>いてきます"],
-  ["<ruby>名前<rt>なまえ</rt></ruby>を <ruby>書<rt>か</rt></ruby>く", "<ruby>名前<rt>なまえ</rt></ruby>を <ruby>書<rt>か</rt></ruby>いてきます"],
-  ["<ruby>友<rt>とも</rt></ruby>だちを <ruby>呼<rt>よ</rt></ruby>ぶ", "<ruby>友<rt>とも</rt></ruby>だちを <ruby>呼<rt>よ</rt></ruby>んできます"],
-  ["<ruby>写真<rt>しゃしん</rt></ruby>を <ruby>撮<rt>と</rt></ruby>る", "<ruby>写真<rt>しゃしん</rt></ruby>を <ruby>撮<rt>と</rt></ruby>ってきます"],
-  ["<ruby>水<rt>みず</rt></ruby>を <ruby>飲<rt>の</rt></ruby>む", "<ruby>水<rt>みず</rt></ruby>を <ruby>飲<rt>の</rt></ruby>んできます"],
-  ["<ruby>駅<rt>えき</rt></ruby>まで <ruby>行<rt>い</rt></ruby>く", "<ruby>駅<rt>えき</rt></ruby>まで <ruby>行<rt>い</rt></ruby>ってきます"],
-  ["<ruby>家<rt>いえ</rt></ruby>へ <ruby>帰<rt>かえ</rt></ruby>る", "<ruby>家<rt>いえ</rt></ruby>へ <ruby>帰<rt>かえ</rt></ruby>ってきます"],
-  ["<ruby>店<rt>みせ</rt></ruby>で <ruby>買<rt>か</rt></ruby>う", "<ruby>店<rt>みせ</rt></ruby>で <ruby>買<rt>か</rt></ruby>ってきます"],
-  ["<ruby>図書館<rt>としょかん</rt></ruby>で <ruby>借<rt>か</rt></ruby>りる", "<ruby>図書館<rt>としょかん</rt></ruby>で <ruby>借<rt>か</rt></ruby>りてきます"],
-  ["<ruby>資料<rt>しりょう</rt></ruby>を <ruby>見<rt>み</rt></ruby>る", "<ruby>資料<rt>しりょう</rt></ruby>を <ruby>見<rt>み</rt></ruby>てきます"],
-  ["<ruby>先生<rt>せんせい</rt></ruby>と <ruby>話<rt>はな</rt></ruby>す", "<ruby>先生<rt>せんせい</rt></ruby>と <ruby>話<rt>はな</rt></ruby>してきます"],
-  ["<ruby>教室<rt>きょうしつ</rt></ruby>を <ruby>見<rt>み</rt></ruby>る", "<ruby>教室<rt>きょうしつ</rt></ruby>を <ruby>見<rt>み</rt></ruby>てきます"],
-  ["<ruby>手<rt>て</rt></ruby>を <ruby>洗<rt>あら</rt></ruby>う", "<ruby>手<rt>て</rt></ruby>を <ruby>洗<rt>あら</rt></ruby>ってきます"],
-  ["<ruby>電気<rt>でんき</rt></ruby>を <ruby>消<rt>け</rt></ruby>す", "<ruby>電気<rt>でんき</rt></ruby>を <ruby>消<rt>け</rt></ruby>してきます"],
-  ["<ruby>窓<rt>まど</rt></ruby>を <ruby>開<rt>あ</rt></ruby>ける", "<ruby>窓<rt>まど</rt></ruby>を <ruby>開<rt>あ</rt></ruby>けてきます"],
-  ["<ruby>ドア<rt>どあ</rt></ruby>を <ruby>閉<rt>し</rt></ruby>める", "<ruby>ドア<rt>どあ</rt></ruby>を <ruby>閉<rt>し</rt></ruby>めてきます"],
-  ["<ruby>荷物<rt>にもつ</rt></ruby>を <ruby>持<rt>も</rt></ruby>つ", "<ruby>荷物<rt>にもつ</rt></ruby>を <ruby>持<rt>も</rt></ruby>ってきます"],
-  ["<ruby>本<rt>ほん</rt></ruby>を <ruby>持<rt>も</rt></ruby>って <ruby>来<rt>く</rt></ruby>る", "<ruby>本<rt>ほん</rt></ruby>を <ruby>持<rt>も</rt></ruby>ってきます"],
-  ["<ruby>昼<rt>ひる</rt></ruby>ごはんを <ruby>食<rt>た</rt></ruby>べる", "<ruby>昼<rt>ひる</rt></ruby>ごはんを <ruby>食<rt>た</rt></ruby>べてきます"],
-  ["<ruby>飲<rt>の</rt></ruby>み<ruby>物<rt>もの</rt></ruby>を <ruby>取<rt>と</rt></ruby>る", "<ruby>飲<rt>の</rt></ruby>み<ruby>物<rt>もの</rt></ruby>を <ruby>取<rt>と</rt></ruby>ってきます"],
-  ["<ruby>紙<rt>かみ</rt></ruby>を <ruby>出<rt>だ</rt></ruby>す", "<ruby>紙<rt>かみ</rt></ruby>を <ruby>出<rt>だ</rt></ruby>してきます"],
-  ["<ruby>友<rt>とも</rt></ruby>だちに <ruby>会<rt>あ</rt></ruby>う", "<ruby>友<rt>とも</rt></ruby>だちに <ruby>会<rt>あ</rt></ruby>ってきます"],
-  ["<ruby>部屋<rt>へや</rt></ruby>を <ruby>掃除<rt>そうじ</rt></ruby>する", "<ruby>部屋<rt>へや</rt></ruby>を <ruby>掃除<rt>そうじ</rt></ruby>してきます"],
-  ["コピーする", "コピーしてきます"],
-  ["<ruby>確認<rt>かくにん</rt></ruby>する", "<ruby>確認<rt>かくにん</rt></ruby>してきます"],
-  ["<ruby>電話<rt>でんわ</rt></ruby>する", "<ruby>電話<rt>でんわ</rt></ruby>してきます"],
-  ["<ruby>練習<rt>れんしゅう</rt></ruby>する", "<ruby>練習<rt>れんしゅう</rt></ruby>してきます"],
-  ["<ruby>先生<rt>せんせい</rt></ruby>を <ruby>呼<rt>よ</rt></ruby>ぶ", "<ruby>先生<rt>せんせい</rt></ruby>を <ruby>呼<rt>よ</rt></ruby>んできます"],
-  ["トイレに <ruby>行<rt>い</rt></ruby>く", "トイレに <ruby>行<rt>い</rt></ruby>ってきます"]
+  ["<ruby>飲<rt>の</rt></ruby>み<ruby>物<rt>もの</rt></ruby>を <ruby>買<rt>か</rt></ruby>う", "<ruby>飲<rt>の</rt></ruby>み<ruby>物<rt>もの</rt></ruby>を <ruby>買<rt>か</rt></ruby>ってきます", "te-utsuru"],
+  ["<ruby>友<rt>とも</rt></ruby>だちに <ruby>会<rt>あ</rt></ruby>う", "<ruby>友<rt>とも</rt></ruby>だちに <ruby>会<rt>あ</rt></ruby>ってきます", "te-utsuru"],
+  ["ここで <ruby>待<rt>ま</rt></ruby>つ", "ここで <ruby>待<rt>ま</rt></ruby>ってきます", "te-utsuru"],
+  ["<ruby>家<rt>いえ</rt></ruby>へ <ruby>帰<rt>かえ</rt></ruby>る", "<ruby>家<rt>いえ</rt></ruby>へ <ruby>帰<rt>かえ</rt></ruby>ってきます", "te-utsuru"],
+  ["<ruby>手<rt>て</rt></ruby>を <ruby>洗<rt>あら</rt></ruby>う", "<ruby>手<rt>て</rt></ruby>を <ruby>洗<rt>あら</rt></ruby>ってきます", "te-utsuru"],
+  ["<ruby>荷物<rt>にもつ</rt></ruby>を <ruby>持<rt>も</rt></ruby>つ", "<ruby>荷物<rt>にもつ</rt></ruby>を <ruby>持<rt>も</rt></ruby>ってきます", "te-utsuru"],
+  ["<ruby>水<rt>みず</rt></ruby>を <ruby>飲<rt>の</rt></ruby>む", "<ruby>水<rt>みず</rt></ruby>を <ruby>飲<rt>の</rt></ruby>んできます", "te-mubunu"],
+  ["<ruby>本<rt>ほん</rt></ruby>を <ruby>読<rt>よ</rt></ruby>む", "<ruby>本<rt>ほん</rt></ruby>を <ruby>読<rt>よ</rt></ruby>んできます", "te-mubunu"],
+  ["<ruby>先生<rt>せんせい</rt></ruby>を <ruby>呼<rt>よ</rt></ruby>ぶ", "<ruby>先生<rt>せんせい</rt></ruby>を <ruby>呼<rt>よ</rt></ruby>んできます", "te-mubunu"],
+  ["<ruby>少<rt>すこ</rt></ruby>し <ruby>休<rt>やす</rt></ruby>む", "<ruby>少<rt>すこ</rt></ruby>し <ruby>休<rt>やす</rt></ruby>んできます", "te-mubunu"],
+  ["<ruby>服<rt>ふく</rt></ruby>を <ruby>選<rt>えら</rt></ruby>ぶ", "<ruby>服<rt>ふく</rt></ruby>を <ruby>選<rt>えら</rt></ruby>んできます", "te-mubunu"],
+  ["<ruby>先生<rt>せんせい</rt></ruby>に <ruby>聞<rt>き</rt></ruby>く", "<ruby>先生<rt>せんせい</rt></ruby>に <ruby>聞<rt>き</rt></ruby>いてきます", "te-ku"],
+  ["<ruby>名前<rt>なまえ</rt></ruby>を <ruby>書<rt>か</rt></ruby>く", "<ruby>名前<rt>なまえ</rt></ruby>を <ruby>書<rt>か</rt></ruby>いてきます", "te-ku"],
+  ["<ruby>会社<rt>かいしゃ</rt></ruby>で <ruby>働<rt>はたら</rt></ruby>く", "<ruby>会社<rt>かいしゃ</rt></ruby>で <ruby>働<rt>はたら</rt></ruby>いてきます", "te-ku"],
+  ["<ruby>駅<rt>えき</rt></ruby>まで <ruby>歩<rt>ある</rt></ruby>く", "<ruby>駅<rt>えき</rt></ruby>まで <ruby>歩<rt>ある</rt></ruby>いてきます", "te-ku"],
+  ["プールで <ruby>泳<rt>およ</rt></ruby>ぐ", "プールで <ruby>泳<rt>およ</rt></ruby>いできます", "te-gu"],
+  ["<ruby>先生<rt>せんせい</rt></ruby>と <ruby>話<rt>はな</rt></ruby>す", "<ruby>先生<rt>せんせい</rt></ruby>と <ruby>話<rt>はな</rt></ruby>してきます", "te-su"],
+  ["<ruby>電気<rt>でんき</rt></ruby>を <ruby>消<rt>け</rt></ruby>す", "<ruby>電気<rt>でんき</rt></ruby>を <ruby>消<rt>け</rt></ruby>してきます", "te-su"],
+  ["<ruby>紙<rt>かみ</rt></ruby>を <ruby>出<rt>だ</rt></ruby>す", "<ruby>紙<rt>かみ</rt></ruby>を <ruby>出<rt>だ</rt></ruby>してきます", "te-su"],
+  ["<ruby>鍵<rt>かぎ</rt></ruby>を <ruby>探<rt>さが</rt></ruby>す", "<ruby>鍵<rt>かぎ</rt></ruby>を <ruby>探<rt>さが</rt></ruby>してきます", "te-su"],
+  ["トイレに <ruby>行<rt>い</rt></ruby>く", "トイレに <ruby>行<rt>い</rt></ruby>ってきます", "te-iku"],
+  ["<ruby>昼<rt>ひる</rt></ruby>ごはんを <ruby>食<rt>た</rt></ruby>べる", "<ruby>昼<rt>ひる</rt></ruby>ごはんを <ruby>食<rt>た</rt></ruby>べてきます", "te-ichidan"],
+  ["<ruby>資料<rt>しりょう</rt></ruby>を <ruby>見<rt>み</rt></ruby>る", "<ruby>資料<rt>しりょう</rt></ruby>を <ruby>見<rt>み</rt></ruby>てきます", "te-ichidan"],
+  ["<ruby>本<rt>ほん</rt></ruby>を <ruby>借<rt>か</rt></ruby>りる", "<ruby>本<rt>ほん</rt></ruby>を <ruby>借<rt>か</rt></ruby>りてきます", "te-ichidan"],
+  ["<ruby>窓<rt>まど</rt></ruby>を <ruby>開<rt>あ</rt></ruby>ける", "<ruby>窓<rt>まど</rt></ruby>を <ruby>開<rt>あ</rt></ruby>けてきます", "te-ichidan"],
+  ["<ruby>ドア<rt>どあ</rt></ruby>を <ruby>閉<rt>し</rt></ruby>める", "<ruby>ドア<rt>どあ</rt></ruby>を <ruby>閉<rt>し</rt></ruby>めてきます", "te-ichidan"],
+  ["<ruby>先生<rt>せんせい</rt></ruby>に <ruby>教<rt>おし</rt></ruby>える", "<ruby>先生<rt>せんせい</rt></ruby>に <ruby>教<rt>おし</rt></ruby>えてきます", "te-ichidan"],
+  ["<ruby>掃除<rt>そうじ</rt></ruby>する", "<ruby>掃除<rt>そうじ</rt></ruby>してきます", ""],
+  ["コピーする", "コピーしてきます", ""],
+  ["<ruby>本<rt>ほん</rt></ruby>を <ruby>持<rt>も</rt></ruby>って <ruby>来<rt>く</rt></ruby>る", "<ruby>本<rt>ほん</rt></ruby>を <ruby>持<rt>も</rt></ruby>ってきます", ""]
 ];
 
 
@@ -2375,16 +2514,17 @@ const vPotential30 = [
   ["<ruby>来<rt>く</rt></ruby>る", "<ruby>来<rt>こ</rt></ruby>られる"]
 ];
 
-function makeTaiTable() { makeFlat30Table("Vたい", "Vたい", vTai30); }
-function makeMasenkaTable() { makeFlat30Table("Vませんか", "Vませんか", vMasenka30); }
-function makeMashouTable() { makeFlat30Table("Vましょう", "Vましょう", vMashou30); }
-function makeTemoiiTable() { makeFlat30Table("Vてもいいですか", "Vてもいいですか", vTemoii30); }
-function makeTeimasuTable() { makeFlat30Table("Vています", "Vています", vTeimasu30); }
-function makeTariTable() { makeFlat30Table("Vたり", "Vたり", vTari30); }
-function makeTaraTable() { makeFlat30Table("Vたら", "Vたら", vTara30); }
-function makeTekimasuTable() { makeFlat30Table("Vてきます", "Vてきます", vTekimasu30); }
-function makeYouTable() { makeFlat30Table("Vよう", "Vよう", vYou30); }
-function makePotentialTable() { makeFlat30Table("可能形", "可能形", vPotential30); }
+function makeTaiTable() { makeFlat30Table("Vたい", "Vたいです", vTai30, "辞書形"); }
+function makeMasenkaTable() { makeFlat30Table("Vませんか", "Vませんか", vMasenka30, "ヒント"); }
+function makeMashouTable() { makeFlat30Table("Vましょう", "Vましょう", vMashou30, "ヒント"); }
+function makeTemoiiTable() { makeFlat30Table("Vてもいいですか", "Vてもいいですか", vTemoii30, "ヒント"); }
+function makeTeimasuTable() { makeFlat30Table("Vています", "Vています", vTeimasu30, "ヒント"); }
+function makeTariTable() { makeFlat30Table("Vたり", "Vたり", vTari30, "ヒント"); }
+function makeTaraTable() { makeTaraPartialColorTable("Vたら", "Vたら", vTara30); }
+function makeTaKotoArimasuTable() { makeFlat30Table("Vたことがあります", "Vたことがあります", vTaKotoArimasu30, "ヒント"); }
+function makeTekimasuTable() { makeFlat30Table("Vてきます", "Vてきます", vTekimasu30, "ヒント"); }
+function makeYouTable() { makeFlatTaggedTable("Vよう", "Vよう", vYou30); }
+function makePotentialTable() { makeFlatTaggedTable("可能形", "可能形", vPotential30); }
 function makeNakattaTable() { makeAdjectiveKunakattaTable(); }
 
 function makePassiveTable() {
