@@ -653,9 +653,9 @@
   #questionMemoLayer {
     position: fixed;
     inset: 0;
-    z-index: 1;
+    z-index: 10000;
     pointer-events: none;
-    overflow: hidden;
+    overflow: visible;
   }
 
   .question-memo-card {
@@ -664,7 +664,7 @@
     min-width: 0;
     max-width: calc(100vw - 16px);
     min-height: 38px;
-    padding: 6px 9px;
+    padding: 6px 0;
     border-radius: 12px;
     background: rgba(255, 255, 255, 0.86);
     border: 1.5px dashed rgba(255, 111, 174, 0.62);
@@ -679,6 +679,9 @@
     word-break: keep-all;
     white-space: nowrap;
     overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     pointer-events: auto;
     cursor: pointer;
     touch-action: manipulation;
@@ -729,6 +732,7 @@
     align-items: center;
     justify-content: center;
     gap: 3px;
+    width: 100%;
     max-width: 100%;
     min-width: 0;
   }
@@ -738,7 +742,7 @@
     display: block;
     flex: 0 1 auto;
     min-width: 0;
-    max-width: 54px;
+    max-width: none;
     overflow: hidden;
     text-overflow: clip;
   }
@@ -747,6 +751,11 @@
     flex: 0 0 auto;
     color: #d90000;
     font-size: 11px;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    align-self: center;
   }
 
   .question-memo-card ruby,
@@ -762,18 +771,13 @@
   @media (max-width: 420px) {
     .question-memo-card {
       min-height: 30px;
-      padding: 4px 5px;
+      padding: 4px 0;
       border-radius: 10px;
       font-size: 8px;
     }
 
     .question-memo-card .memo-type {
       font-size: 7px;
-    }
-
-    .question-memo-card .memo-left,
-    .question-memo-card .memo-right {
-      max-width: 42px;
     }
 
   }
@@ -1604,6 +1608,51 @@ function getMemoDisplayItem(item) {
   return { type, leftHtml, rightHtml, leftText, rightText };
 }
 
+function getMemoMeasureText(html, fallbackText) {
+  const tmp = document.createElement("div");
+  tmp.innerHTML = html || "";
+  tmp.querySelectorAll("rt").forEach(rt => rt.remove());
+  return (tmp.textContent || fallbackText || "").replace(/\s+/g, "").trim();
+}
+
+function getMemoTextWidth(item, isSmall) {
+  const displayItem = getMemoDisplayItem(item);
+  const leftText = getMemoMeasureText(displayItem.leftHtml, displayItem.leftText);
+  const rightText = getMemoMeasureText(displayItem.rightHtml, displayItem.rightText);
+  const fontSize = isSmall ? 8 : 12;
+  const font = `700 ${fontSize}px "Hiragino Maru Gothic ProN", "Yu Gothic", sans-serif`;
+
+  if (!getMemoTextWidth.canvas) {
+    getMemoTextWidth.canvas = document.createElement("canvas");
+  }
+
+  const ctx = getMemoTextWidth.canvas.getContext("2d");
+  if (!ctx) {
+    return Math.ceil(Array.from(`${leftText}→${rightText}`).length * fontSize);
+  }
+
+  ctx.font = font;
+  const leftWidth = ctx.measureText(leftText).width;
+  const arrowWidth = ctx.measureText("→").width;
+  const rightWidth = ctx.measureText(rightText).width;
+  return Math.ceil(leftWidth + arrowWidth + rightWidth + 6);
+}
+
+function arrangeMemoRow(rowItems) {
+  if (rowItems.length <= 2) {
+    return rowItems.slice().sort((a, b) => b.width - a.width);
+  }
+
+  const sorted = rowItems.slice().sort((a, b) => b.width - a.width);
+  const smallFirst = sorted.slice(1).sort((a, b) => a.width - b.width);
+
+  if (sorted[0].isWide && sorted[1]?.isWide && !sorted[2]?.isWide) {
+    return [sorted[0], sorted[2], sorted[1]];
+  }
+
+  return [smallFirst[0], sorted[0], smallFirst[1]];
+}
+
 function getMemoLayout(items) {
   items = Array.isArray(items) ? items.filter(isValidQuestionItem) : [];
   if (!items.length) return [];
@@ -1616,25 +1665,79 @@ function getMemoLayout(items) {
   const gap = isSmall ? 4 : 6;
   const columns = 3;
   const rowsPerZone = Math.ceil(QUESTION_MEMO_ZONE_LIMIT / columns);
-  const cardW = Math.floor((vw - margin * 2 - gap * (columns - 1)) / columns);
+  const baseCardW = Math.floor((vw - margin * 2 - gap * (columns - 1)) / columns);
+  const maxCardW = Math.max(baseCardW, vw - margin * 2);
   const cardH = isSmall ? 36 : 46;
   const topY = margin;
   const bottomY = Math.max(margin, vh - margin - rowsPerZone * cardH - (rowsPerZone - 1) * gap);
-
-  return items.map((item, index) => {
-    const zoneIndex = index < QUESTION_MEMO_ZONE_LIMIT ? index : index - QUESTION_MEMO_ZONE_LIMIT;
-    const row = Math.floor(zoneIndex / columns);
-    const col = zoneIndex % columns;
+  const layoutItems = items.map((item, index) => {
+    const textWidth = getMemoTextWidth(item, isSmall);
+    const width = Math.min(maxCardW, Math.max(baseCardW, textWidth));
     const rand = seededRandom(`${item.key}:${index}`);
-    const rotation = rand() < 0.5 ? -1.5 : 1.5;
+
     return {
-      x: margin + col * (cardW + gap),
-      y: (index < QUESTION_MEMO_ZONE_LIMIT ? topY : bottomY) + row * (cardH + gap),
-      width: cardW,
+      itemIndex: index,
+      width,
       height: cardH,
-      rotation
+      isWide: width > baseCardW + 1,
+      rotation: rand() < 0.5 ? -1.5 : 1.5
     };
   });
+
+  const positions = [];
+  const placeLayoutItem = (layoutItem, col, row, yBase) => {
+    let x;
+    if (col === 0) {
+      x = margin;
+    } else if (col === columns - 1) {
+      x = vw - margin - layoutItem.width;
+    } else {
+      x = Math.round((vw - layoutItem.width) / 2);
+    }
+
+    positions.push({
+      itemIndex: layoutItem.itemIndex,
+      x: Math.max(margin, Math.min(x, vw - margin - layoutItem.width)),
+      y: yBase + row * (cardH + gap),
+      width: layoutItem.width,
+      height: layoutItem.height,
+      layer: layoutItem.width,
+      rotation: layoutItem.rotation
+    });
+  };
+
+  const placeZone = (zoneItems, yBase) => {
+    if (zoneItems.length <= columns) {
+      arrangeMemoRow(zoneItems).forEach((layoutItem, col) => {
+        placeLayoutItem(layoutItem, col, 0, yBase);
+      });
+      return;
+    }
+
+    const rowsNeeded = Math.ceil(zoneItems.length / columns);
+    const sortedWideFirst = zoneItems.slice().sort((a, b) => b.width - a.width);
+    const centerItems = sortedWideFirst.slice(0, rowsNeeded);
+    const sideItems = sortedWideFirst.slice(rowsNeeded).sort((a, b) => a.width - b.width);
+
+    centerItems.forEach((layoutItem, row) => {
+      placeLayoutItem(layoutItem, 1, row, yBase);
+    });
+
+    const sideSlots = [];
+    for (let row = 0; row < rowsNeeded; row++) {
+      sideSlots.push({ row, col: 0 }, { row, col: 2 });
+    }
+
+    sideItems.forEach((layoutItem, index) => {
+      const slot = sideSlots[index];
+      placeLayoutItem(layoutItem, slot.col, slot.row, yBase);
+    });
+  };
+
+  placeZone(layoutItems.slice(0, QUESTION_MEMO_ZONE_LIMIT), topY);
+  placeZone(layoutItems.slice(QUESTION_MEMO_ZONE_LIMIT), bottomY);
+
+  return positions;
 }
 
 function canPlaceQuestionMemo(items) {
@@ -1682,8 +1785,8 @@ function renderQuestionMemoLayer() {
     return;
   }
 
-  items.forEach((item, index) => {
-    const pos = positions[index];
+  positions.forEach(pos => {
+    const item = items[pos.itemIndex];
     const displayItem = getMemoDisplayItem(item);
     const card = document.createElement("div");
     card.className = "question-memo-card";
@@ -1691,6 +1794,7 @@ function renderQuestionMemoLayer() {
     card.style.top = `${pos.y}px`;
     card.style.width = `${pos.width}px`;
     card.style.minHeight = `${pos.height}px`;
+    card.style.zIndex = String(Math.round(pos.layer));
     card.style.setProperty("--memo-rotation", `rotate(${pos.rotation}deg)`);
     card.setAttribute("role", "button");
     card.setAttribute("tabindex", "0");
