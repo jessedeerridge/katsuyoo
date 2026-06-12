@@ -1608,15 +1608,34 @@ function getMemoDisplayItem(item) {
   return { type, leftHtml, rightHtml, leftText, rightText };
 }
 
-function getMemoTextScore(item) {
-  const displayItem = getMemoDisplayItem(item);
-  const leftText = displayItem.leftText || stripHtmlForKey(displayItem.leftHtml || "");
-  const rightText = displayItem.rightText || stripHtmlForKey(displayItem.rightHtml || "");
-  const scoreText = `${leftText}→${rightText}`;
+function getMemoMeasureText(html, fallbackText) {
+  const tmp = document.createElement("div");
+  tmp.innerHTML = html || "";
+  tmp.querySelectorAll("rt").forEach(rt => rt.remove());
+  return (tmp.textContent || fallbackText || "").replace(/\s+/g, "").trim();
+}
 
-  return Array.from(scoreText).reduce((total, char) => {
-    return total + (/^[\x00-\x7F]$/.test(char) ? 0.62 : 1);
-  }, 0);
+function getMemoTextWidth(item, isSmall) {
+  const displayItem = getMemoDisplayItem(item);
+  const leftText = getMemoMeasureText(displayItem.leftHtml, displayItem.leftText);
+  const rightText = getMemoMeasureText(displayItem.rightHtml, displayItem.rightText);
+  const fontSize = isSmall ? 8 : 12;
+  const font = `700 ${fontSize}px "Hiragino Maru Gothic ProN", "Yu Gothic", sans-serif`;
+
+  if (!getMemoTextWidth.canvas) {
+    getMemoTextWidth.canvas = document.createElement("canvas");
+  }
+
+  const ctx = getMemoTextWidth.canvas.getContext("2d");
+  if (!ctx) {
+    return Math.ceil(Array.from(`${leftText}→${rightText}`).length * fontSize);
+  }
+
+  ctx.font = font;
+  const leftWidth = ctx.measureText(leftText).width;
+  const arrowWidth = ctx.measureText("→").width;
+  const rightWidth = ctx.measureText(rightText).width;
+  return Math.ceil(leftWidth + arrowWidth + rightWidth + 6);
 }
 
 function arrangeMemoRow(rowItems) {
@@ -1651,11 +1670,8 @@ function getMemoLayout(items) {
   const cardH = isSmall ? 36 : 46;
   const topY = margin;
   const bottomY = Math.max(margin, vh - margin - rowsPerZone * cardH - (rowsPerZone - 1) * gap);
-  const charPx = isSmall ? 8.2 : 12.2;
-  const arrowPx = isSmall ? 13 : 18;
-
   const layoutItems = items.map((item, index) => {
-    const textWidth = Math.ceil(getMemoTextScore(item) * charPx + arrowPx);
+    const textWidth = getMemoTextWidth(item, isSmall);
     const width = Math.min(maxCardW, Math.max(baseCardW, textWidth));
     const rand = seededRandom(`${item.key}:${index}`);
 
@@ -1685,6 +1701,7 @@ function getMemoLayout(items) {
       y: yBase + row * (cardH + gap),
       width: layoutItem.width,
       height: layoutItem.height,
+      layer: layoutItem.width,
       rotation: layoutItem.rotation
     });
   };
@@ -1777,6 +1794,7 @@ function renderQuestionMemoLayer() {
     card.style.top = `${pos.y}px`;
     card.style.width = `${pos.width}px`;
     card.style.minHeight = `${pos.height}px`;
+    card.style.zIndex = String(Math.round(pos.layer));
     card.style.setProperty("--memo-rotation", `rotate(${pos.rotation}deg)`);
     card.setAttribute("role", "button");
     card.setAttribute("tabindex", "0");
