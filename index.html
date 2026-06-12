@@ -2049,17 +2049,18 @@ function makeMasuHeaderCell(label) {
   return `<th>${label}</th>`;
 }
 
-function makeMasuBodyRow(row, extraClass = "") {
+function makeMasuBodyRow(row, extraClass = "", allowSwap = true) {
   /*
     Vます専用：
     入れ替え前も入れ替え後も、左は黒い問題側、右は赤い答え側にする。
     右側だけ answer-text を付けるので、赤シートと重なった部分だけ消える。
   */
-  const left = masuSwapped
+  const shouldSwap = allowSwap && masuSwapped;
+  const left = shouldSwap
     ? makeWordCell(row[1])
     : makeWordCell(row[0]);
 
-  const right = masuSwapped
+  const right = shouldSwap
     ? `<span class="answer-text">${row[0]}</span>`
     : `<span class="answer-text">${row[1]}</span>`;
 
@@ -2130,9 +2131,9 @@ function makeMasuTable() {
   });
 
   [
-    ["ましょう", masuMashouData],
-    ["ませんか", masuMasenkaData],
-    ["ましょうか", masuMashoukaData]
+    ["ませんか（…怎么样？）", masuMasenkaData],
+    ["ましょうか（提出帮助）", masuMashoukaData],
+    ["ましょう（...吧!）", masuMashouData]
   ].forEach(([label, rows]) => {
     html += `
       <tr class="group-row">
@@ -2141,7 +2142,7 @@ function makeMasuTable() {
     `;
 
     rows.forEach(row => {
-      html += makeMasuBodyRow(row);
+      html += makeMasuBodyRow(row, "", false);
     });
   });
 
