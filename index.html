@@ -3726,6 +3726,36 @@ function polygonIntersectsRect(polygon, rect) {
   });
 }
 
+function uniqueSortedNumbers(values) {
+  return [...new Set(values.map(value => Math.round(value)))].sort((a, b) => a - b);
+}
+
+function getSheetVisibleRightAtY(polygon, rect, y) {
+  const intersections = [];
+
+  polygon.forEach((point, index) => {
+    const nextPoint = polygon[(index + 1) % polygon.length];
+    const minY = Math.min(point.y, nextPoint.y);
+    const maxY = Math.max(point.y, nextPoint.y);
+    const dy = nextPoint.y - point.y;
+
+    if (Math.abs(dy) < 0.01 || y < minY || y > maxY) return;
+
+    const ratio = (y - point.y) / dy;
+    intersections.push(point.x + (nextPoint.x - point.x) * ratio);
+  });
+
+  const xs = uniqueSortedNumbers(intersections);
+  if (xs.length < 2) return rect.width;
+
+  const sheetLeft = xs[0];
+  const sheetRight = xs[xs.length - 1];
+  if (sheetRight <= rect.left || sheetLeft >= rect.right) return rect.width;
+
+  return Math.max(0, Math.min(rect.width, Math.round(sheetLeft - rect.left)));
+}
+
+
 function clearTextMask(text) {
   text.style.webkitMaskImage = "";
   text.style.maskImage = "";
@@ -3748,16 +3778,6 @@ function updateSheetHiddenText() {
   if (!sheet || texts.length === 0) return;
 
   const sheetPolygon = getSheetPolygon(sheet);
-  const sheetBounds = getPolygonBounds(sheetPolygon);
-  const sheetLeftTop = sheetPolygon[0];
-  const sheetLeftBottom = sheetPolygon[3];
-  const snap = value => Math.round(value);
-  const lineXAtY = y => {
-    const dy = sheetLeftBottom.y - sheetLeftTop.y;
-    if (Math.abs(dy) < 0.01) return sheetLeftTop.x;
-    const ratio = (y - sheetLeftTop.y) / dy;
-    return sheetLeftTop.x + (sheetLeftBottom.x - sheetLeftTop.x) * ratio;
-  };
 
   texts.forEach(text => {
     const rect = text.getBoundingClientRect();
@@ -3770,7 +3790,9 @@ function updateSheetHiddenText() {
       left: rect.left,
       right: rect.right,
       top: rect.top,
-      bottom: rect.bottom
+      bottom: rect.bottom,
+      width: rect.width,
+      height: rect.height
     };
 
     if (!polygonIntersectsRect(sheetPolygon, textRect)) {
@@ -3780,39 +3802,40 @@ function updateSheetHiddenText() {
 
     /*
       SVG maskのdata URLをスクロール中に作り直すと、特にスマホで接触部分がちらつく。
-      赤シートは右側からかぶさるため、回転後の左辺に合わせたclip-pathで、
-      赤シートと重なっている上下範囲だけを切り抜く。
+      赤シートの傾いた多角形を横切る位置ごとに「表示できる右端」を計算し、
+      clip-pathだけを必要なときに更新して、接触している部分だけを消す。
     */
-    const width = Math.max(1, snap(rect.width));
-    const height = Math.max(1, snap(rect.height));
-    const overlapTop = Math.max(0, Math.min(height, snap(sheetBounds.top - rect.top)));
-    const overlapBottom = Math.max(0, Math.min(height, snap(sheetBounds.bottom - rect.top)));
-    const topCutX = Math.max(0, Math.min(width, snap(lineXAtY(rect.top + overlapTop) - rect.left)));
-    const bottomCutX = Math.max(0, Math.min(width, snap(lineXAtY(rect.top + overlapBottom) - rect.left)));
+    const width = Math.max(1, Math.round(rect.width));
+    const height = Math.max(1, Math.round(rect.height));
+    const ySamples = uniqueSortedNumbers([
+      0,
+      height,
+      ...sheetPolygon
+        .map(point => point.y - rect.top)
+        .filter(y => y > 0 && y < height)
+    ]);
+    const rightEdgePoints = ySamples.map(y => ({
+      x: getSheetVisibleRightAtY(sheetPolygon, textRect, rect.top + y),
+      y
+    }));
 
-    if (overlapBottom <= overlapTop || (topCutX >= width && bottomCutX >= width)) {
+    const maxHiddenWidth = Math.max(...rightEdgePoints.map(point => width - point.x));
+    if (maxHiddenWidth < 2) {
       if (text.dataset.maskKey || text.dataset.clipKey) clearTextMask(text);
       return;
     }
 
-    const key = `${width},${height},${overlapTop},${overlapBottom},${topCutX},${bottomCutX}`;
+    const key = `${width},${height},${rightEdgePoints.map(point => `${point.x}:${point.y}`).join("|")}`;
     if (text.dataset.clipKey === key) return;
 
     text.dataset.clipKey = key;
     text.dataset.maskKey = "";
 
-    const points = [`0 0`];
-    if (overlapTop > 0) {
-      points.push(`${width}px 0`, `${width}px ${overlapTop}px`, `${topCutX}px ${overlapTop}px`);
-    } else {
-      points.push(`${topCutX}px 0`);
-    }
-    points.push(`${bottomCutX}px ${overlapBottom}px`);
-    if (overlapBottom < height) {
-      points.push(`${width}px ${overlapBottom}px`, `${width}px ${height}px`);
-    }
-    points.push(`0 ${height}px`);
-    const pointsValue = points.join(", ");
+    const pointsValue = [
+      `0 0`,
+      ...rightEdgePoints.map(point => `${point.x}px ${point.y}px`),
+      `0 ${height}px`
+    ].join(", ");
     const clipValue = `polygon(${pointsValue})`;
     text.style.webkitMaskImage = "";
     text.style.maskImage = "";
