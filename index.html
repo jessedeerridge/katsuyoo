@@ -576,6 +576,27 @@
   }
 
 
+  /* ===== メニュー：そのページに存在するボタン群を画面中央に配置 ===== */
+  body.menu-mode #menuScreen {
+    position: relative;
+    height: 100vh;
+    height: 100svh;
+  }
+
+  body.menu-mode .button-grid {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+  }
+
+  /* ===== Vて・Vた：赤シートは通常位置、表だけ下げて一語目の高さを他ページに揃える ===== */
+  body.table-start-lowered .table-wrap {
+    padding-top: 68px;
+  }
+
+
   /* ===== 起動時の説明パネル ===== */
   .start-notice-overlay {
     position: fixed;
@@ -599,6 +620,54 @@
     background: rgba(0, 0, 0, 0.62);
     box-shadow: 0 12px 28px rgba(0, 0, 0, 0.24);
   }
+
+
+
+  /* ===== 表内文字：2行禁止＋同じ表内の文字サイズ統一 ===== */
+  #tableArea table {
+    --table-font-size: 18px;
+    font-size: var(--table-font-size) !important;
+  }
+
+  #tableArea th,
+  #tableArea td,
+  #tableArea .group-row td,
+  #tableArea .word-text,
+  #tableArea .answer-text,
+  #tableArea ruby {
+    font-size: inherit !important;
+    white-space: nowrap !important;
+    line-height: 1.15;
+  }
+
+  #tableArea rt {
+    font-size: 0.58em !important;
+    line-height: 1;
+  }
+
+  #tableArea th,
+  #tableArea td {
+    overflow: hidden;
+    text-overflow: clip;
+  }
+
+  #tableArea .word-cell-inner {
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  #tableArea .word-text {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: clip;
+    padding-right: 30px;
+  }
+
+  #tableArea .answer-text {
+    max-width: 100%;
+    vertical-align: middle;
+  }
+
 
   .start-notice-table td {
     height: auto;
@@ -625,10 +694,6 @@
   <table class="start-notice-table">
     <tr>
       <td>请务必不要只在脑中练习，而是一定要大声说出来进行练习。通过按照规则连续口头表达，让头脑和嘴巴都逐渐适应。
-
-点击一次按钮，为基础模式。
-长按按钮，则可以使用不同水平的表达方式进行练习。
-
 “？”仅保存在同一浏览器内。</td>
     </tr>
   </table>
@@ -1128,9 +1193,9 @@ let tableVisible = false;
 let masuSwapped = false;
 
 function showTable(type) {
-  document.body.classList.remove("menu-mode", "sheet-high");
+  document.body.classList.remove("menu-mode", "sheet-high", "table-start-lowered");
   if (type === "Vて" || type === "Vた") {
-    document.body.classList.add("sheet-high");
+    document.body.classList.add("table-start-lowered");
   }
   document.getElementById("menuScreen").style.display = "none";
   document.getElementById("tableScreen").style.display = "block";
@@ -1199,7 +1264,7 @@ function showTable(type) {
 }
 
 function backMenu() {
-  document.body.classList.remove("sheet-high");
+  document.body.classList.remove("sheet-high", "table-start-lowered");
   tableVisible = false;
   stopMaskLoop();
   clearAllMasks();
@@ -1261,6 +1326,7 @@ function toggleMasuSwap() {
   makeMasuTable();
 
   requestAnimationFrame(() => {
+    fitTableTextOneLine();
     adjustScrollExtraHeight();
     updateSheetHiddenText();
   });
@@ -1321,6 +1387,7 @@ function makeMasuTable() {
   document.getElementById("tableArea").innerHTML = html;
 
   requestAnimationFrame(() => {
+    fitTableTextOneLine();
     adjustScrollExtraHeight();
     updateSheetHiddenText();
   });
@@ -1386,6 +1453,7 @@ function makeTaiTable() {
   document.getElementById("tableArea").innerHTML = html;
 
   requestAnimationFrame(() => {
+    fitTableTextOneLine();
     adjustScrollExtraHeight();
     updateSheetHiddenText();
   });
@@ -1418,6 +1486,7 @@ function makeTeTable() {
   document.getElementById("tableArea").innerHTML = html;
 
   requestAnimationFrame(() => {
+    fitTableTextOneLine();
     adjustScrollExtraHeight();
     updateSheetHiddenText();
   });
@@ -1450,6 +1519,7 @@ function makeTaTable() {
   document.getElementById("tableArea").innerHTML = html;
 
   requestAnimationFrame(() => {
+    fitTableTextOneLine();
     adjustScrollExtraHeight();
     updateSheetHiddenText();
   });
@@ -1516,6 +1586,7 @@ function makeGroupTable(title, rightTitle, godanRows, ichidanRows, irregularRows
   document.getElementById("tableArea").innerHTML = html;
 
   requestAnimationFrame(() => {
+    fitTableTextOneLine();
     adjustScrollExtraHeight();
     updateSheetHiddenText();
   });
@@ -1598,6 +1669,7 @@ function makeAdjectiveTable(rightTitle, answerIndex) {
   document.getElementById("tableArea").innerHTML = html;
 
   requestAnimationFrame(() => {
+    fitTableTextOneLine();
     adjustScrollExtraHeight();
     updateSheetHiddenText();
   });
@@ -1681,6 +1753,7 @@ function makeTokiTable() {
   document.getElementById("tableArea").innerHTML = html;
 
   requestAnimationFrame(() => {
+    fitTableTextOneLine();
     adjustScrollExtraHeight();
     updateSheetHiddenText();
   });
@@ -1930,6 +2003,7 @@ function makeGroupedExpressionTable(title, data) {
   document.getElementById("tableArea").innerHTML = html;
 
   requestAnimationFrame(() => {
+    fitTableTextOneLine();
     adjustScrollExtraHeight();
     updateSheetHiddenText();
   });
@@ -1964,6 +2038,7 @@ function makeFlat30Table(title, rightTitle, rows) {
   document.getElementById("tableArea").innerHTML = html;
 
   requestAnimationFrame(() => {
+    fitTableTextOneLine();
     adjustScrollExtraHeight();
     updateSheetHiddenText();
   });
@@ -2302,6 +2377,7 @@ function showPlaceholder(type) {
   `;
 
   requestAnimationFrame(() => {
+    fitTableTextOneLine();
     adjustScrollExtraHeight();
     updateSheetHiddenText();
   });
@@ -2309,6 +2385,30 @@ function showPlaceholder(type) {
 
 function toggleQuestionMark(button) {
   button.classList.toggle("active");
+}
+
+
+function fitTableTextOneLine() {
+  const table = document.querySelector("#tableArea table");
+  if (!table) return;
+
+  const maxFont = 18;
+  const minFont = 10;
+  table.style.setProperty("--table-font-size", `${maxFont}px`);
+
+  const targets = Array.from(table.querySelectorAll("th, td"));
+
+  const isOverflowing = () => targets.some(cell => {
+    const rect = cell.getBoundingClientRect();
+    if (rect.width <= 0 || rect.height <= 0) return false;
+    return cell.scrollWidth > cell.clientWidth + 1;
+  });
+
+  let size = maxFont;
+  while (size > minFont && isOverflowing()) {
+    size -= 1;
+    table.style.setProperty("--table-font-size", `${size}px`);
+  }
 }
 
 function adjustScrollExtraHeight() {
@@ -2503,6 +2603,7 @@ preventMobileZoom();
 
 window.addEventListener("resize", () => {
   requestAnimationFrame(() => {
+    fitTableTextOneLine();
     adjustScrollExtraHeight();
     updateSheetHiddenText();
   });
@@ -2510,6 +2611,7 @@ window.addEventListener("resize", () => {
 
 window.addEventListener("orientationchange", () => {
   requestAnimationFrame(() => {
+    fitTableTextOneLine();
     adjustScrollExtraHeight();
     updateSheetHiddenText();
   });
@@ -2518,10 +2620,18 @@ window.addEventListener("orientationchange", () => {
 window.addEventListener("load", () => {
   updateMenuPage();
   requestAnimationFrame(() => {
+    fitTableTextOneLine();
     adjustScrollExtraHeight();
     updateSheetHiddenText();
   });
 });
+
+window.addEventListener("resize", () => {
+  fitTableTextOneLine();
+  adjustScrollExtraHeight();
+  updateSheetHiddenText();
+});
+
 </script>
 
 </body>
