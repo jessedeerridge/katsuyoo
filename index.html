@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
 
-<title>活用練習 v21</title>
+<title>活用練習 v23</title>
 
 <style>
   @import url("https://fonts.googleapis.com/css2?family=Kosugi+Maru&family=Ma+Shan+Zheng&family=ZCOOL+KuaiLe&display=swap");
@@ -56,6 +56,20 @@
     font-weight: bold;
     color: #ff6fae;
     margin: 12px 0 18px;
+  }
+
+  .title-emoji {
+    display: inline-block;
+    vertical-align: middle;
+  }
+
+  .title-emoji.left {
+    transform: scaleX(-1);
+    margin-right: 0.25em;
+  }
+
+  .title-emoji.right {
+    margin-left: 0.25em;
   }
 
   .button-grid {
@@ -473,7 +487,8 @@
     border-left: 4px solid rgba(220, 40, 40, 0.55);
     box-shadow: -6px 0 14px rgba(120, 0, 0, 0.14);
 
-    transform: translateZ(0);
+    transform: translateZ(0) rotate(2deg);
+    transform-origin: right center;
     will-change: auto;
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
@@ -664,8 +679,19 @@
   }
 
   #tableArea .answer-text {
-    max-width: 100%;
+    max-width: calc(100% - 4px);
     vertical-align: middle;
+    overflow: hidden;
+    text-overflow: clip;
+    -webkit-clip-path: inset(0 0 0 0);
+    clip-path: inset(0 0 0 0);
+  }
+
+  #tableArea .answer-text ruby,
+  #tableArea .word-text ruby {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: clip;
   }
 
 
@@ -701,7 +727,7 @@
 
 
 <div id="menuScreen" class="screen">
-  <div class="page-title">🌸 活用れんしゅう 🌸</div>
+  <div class="page-title"><span class="title-emoji left">🐢</span> 活用れんしゅう <span class="title-emoji right">🐢</span></div>
 
   <div class="button-grid">
     <div class="menu-page active" data-page="0">
@@ -709,19 +735,18 @@
       <button class="menu-btn" onclick="showTable('Vて')">Vて</button>
       <button class="menu-btn" onclick="showTable('Vた')">Vた</button>
       <button class="menu-btn" onclick="showTable('Vない')">Vない</button>
+      <button class="menu-btn" onclick="showTable('Vよう')">Vよう</button>
+      <button class="menu-btn" onclick="showTable('V可能')">V可能</button>
+      <button class="menu-btn" onclick="showTable('とき')">とき</button>
+      <button class="menu-btn empty" aria-hidden="true" tabindex="-1"></button>
+      <button class="menu-btn" onclick="showTable('形-なかった')">形-なかった</button>
       <button class="menu-btn" onclick="showTable('形-て')">形-て</button>
       <button class="menu-btn" onclick="showTable('形-た')">形-た</button>
       <button class="menu-btn" onclick="showTable('形-ない')">形-ない</button>
-      <button class="menu-btn" onclick="showTable('とき')">とき</button>
     </div>
 
     <div class="menu-page" data-page="1">
       <button class="menu-btn" onclick="showTable('Vたい')">Vたい</button>
-      <button class="menu-btn" onclick="showTable('Vよう')">Vよう</button>
-      <button class="menu-btn" onclick="showTable('可能形')">可能形</button>
-      <button class="menu-btn" onclick="showTable('形くなかった')">形くなかった</button>
-      <button class="menu-btn" onclick="showTable('Vませんか')">Vませんか</button>
-      <button class="menu-btn" onclick="showTable('Vましょう')">Vましょう</button>
       <button class="menu-btn" onclick="showTable('Vています')">Vています</button>
       <button class="menu-btn" onclick="showTable('Vてきます')">Vてきます</button>
       <button class="menu-btn" onclick="showTable('Vてもいいですか')">Vてもいいですか</button>
@@ -1246,7 +1271,7 @@ function showTable(type) {
     makeAdjectiveKattaTable();
   } else if (type === "形くない" || type === "形-ない") {
     makeAdjectiveKunaiTable();
-  } else if (type === "形くなかった" || type === "形-なかった") {
+  } else if (type === "形-なかった" || type === "形-なかった") {
     makeAdjectiveKunakattaTable();
   } else if (type === "とき") {
     makeTokiTable();
@@ -1257,9 +1282,15 @@ function showTable(type) {
   window.scrollTo(0, 0);
 
   requestAnimationFrame(() => {
+    fitTableTextOneLine();
     adjustScrollExtraHeight();
     updateSheetHiddenText();
-    startMaskLoop();
+    requestAnimationFrame(() => {
+      fitTableTextOneLine();
+      adjustScrollExtraHeight();
+      updateSheetHiddenText();
+      startMaskLoop();
+    });
   });
 }
 
@@ -1680,7 +1711,7 @@ function makeAdjectiveKuteTable() {
 }
 
 function makeAdjectiveKattaTable() {
-  // 形かった：形くて・形くない・形くなかったと同じ語彙を表示
+  // 形かった：形くて・形くない・形-なかったと同じ語彙を表示
   makeAdjectiveTable("形かった", 2);
 }
 
@@ -1689,7 +1720,7 @@ function makeAdjectiveKunaiTable() {
 }
 
 function makeAdjectiveKunakattaTable() {
-  makeAdjectiveTable("形くなかった", 4);
+  makeAdjectiveTable("形-なかった", 4);
 }
 
 
@@ -2393,24 +2424,50 @@ function fitTableTextOneLine() {
   if (!table) return;
 
   const maxFont = 18;
-  const minFont = 10;
-  table.style.setProperty("--table-font-size", `${maxFont}px`);
+  const minFont = 7;
+  const wrap = document.querySelector(".table-wrap");
 
-  const targets = Array.from(table.querySelectorAll("th, td"));
+  const resetFont = () => {
+    table.style.setProperty("--table-font-size", `${maxFont}px`);
+    table.dataset.fittedFontSize = String(maxFont);
+  };
 
-  const isOverflowing = () => targets.some(cell => {
-    const rect = cell.getBoundingClientRect();
-    if (rect.width <= 0 || rect.height <= 0) return false;
-    return cell.scrollWidth > cell.clientWidth + 1;
-  });
+  const targets = () => Array.from(table.querySelectorAll(
+    "th, td, .word-text, .answer-text, .group-row td"
+  )).filter(el => el.offsetParent !== null);
+
+  const isOverflowing = () => {
+    const tableRect = table.getBoundingClientRect();
+    const wrapRect = wrap ? wrap.getBoundingClientRect() : tableRect;
+
+    if (tableRect.width > wrapRect.width + 0.5) return true;
+
+    return targets().some(el => {
+      const rect = el.getBoundingClientRect();
+      if (rect.width <= 0 || rect.height <= 0) return false;
+
+      if (el.scrollWidth > el.clientWidth + 0.5) return true;
+      if (el.scrollHeight > el.clientHeight + 1.5 && !el.matches("ruby")) return true;
+
+      const cell = el.closest("td, th");
+      if (cell && el !== cell) {
+        const cellRect = cell.getBoundingClientRect();
+        if (rect.left < cellRect.left - 0.5 || rect.right > cellRect.right + 0.5) return true;
+      }
+      return false;
+    });
+  };
+
+  resetFont();
 
   let size = maxFont;
   while (size > minFont && isOverflowing()) {
     size -= 1;
     table.style.setProperty("--table-font-size", `${size}px`);
   }
-}
 
+  table.dataset.fittedFontSize = String(size);
+}
 function adjustScrollExtraHeight() {
   const extra = document.querySelector(".scroll-extra-y");
   const table = document.querySelector("#tableArea table");
@@ -2483,21 +2540,30 @@ function clearAllMasks() {
     text.style.maskRepeat = "";
     text.style.webkitMaskPosition = "";
     text.style.maskPosition = "";
+    text.style.webkitClipPath = "";
+    text.style.clipPath = "";
+    text.dataset.maskKey = "";
+    text.dataset.clipKey = "";
   });
 }
 
 function getSheetRect(sheet) {
   const rect = sheet.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  const snapDown = value => Math.floor(value * dpr) / dpr;
+  const snapUp = value => Math.ceil(value * dpr) / dpr;
   return {
-    left: Math.floor(rect.left),
-    right: Math.ceil(rect.right),
-    top: Math.floor(rect.top),
-    bottom: Math.ceil(rect.bottom)
+    left: snapDown(rect.left),
+    right: snapUp(rect.right),
+    top: snapDown(rect.top),
+    bottom: snapUp(rect.bottom)
   };
 }
 
 function rectsOverlap(a, b) {
-  return a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+  const overlapX = Math.min(a.right, b.right) - Math.max(a.left, b.left);
+  const overlapY = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
+  return overlapX > 1.5 && overlapY > 1.5;
 }
 
 function escapeSvgForDataUrl(svg) {
@@ -2510,6 +2576,21 @@ function escapeSvgForDataUrl(svg) {
     .replace(/\s{2,}/g, " ");
 }
 
+function clearTextMask(text) {
+  text.style.webkitMaskImage = "";
+  text.style.maskImage = "";
+  text.style.webkitMaskSize = "";
+  text.style.maskSize = "";
+  text.style.webkitMaskRepeat = "";
+  text.style.maskRepeat = "";
+  text.style.webkitMaskPosition = "";
+  text.style.maskPosition = "";
+  text.style.webkitClipPath = "";
+  text.style.clipPath = "";
+  text.dataset.maskKey = "";
+  text.dataset.clipKey = "";
+}
+
 function updateSheetHiddenText() {
   const sheet = document.querySelector(".red-sheet");
   const texts = document.querySelectorAll(".answer-text");
@@ -2517,62 +2598,52 @@ function updateSheetHiddenText() {
   if (!sheet || texts.length === 0) return;
 
   const sheetRect = getSheetRect(sheet);
-  const padding = 2;
+  const dpr = window.devicePixelRatio || 1;
+  const snap = value => Math.round(value * dpr) / dpr;
+  const minVerticalOverlap = 1.5;
+  const minHorizontalOverlap = 1.5;
 
   texts.forEach(text => {
     const rect = text.getBoundingClientRect();
-    const textBounds = {
-      left: Math.floor(rect.left),
-      right: Math.ceil(rect.right),
-      top: Math.floor(rect.top),
-      bottom: Math.ceil(rect.bottom)
-    };
-
-    if (!rectsOverlap(sheetRect, textBounds)) {
-      if (text.dataset.maskKey !== "") {
-        text.style.webkitMaskImage = "";
-        text.style.maskImage = "";
-        text.dataset.maskKey = "";
-      }
+    if (rect.width <= 0 || rect.height <= 0) {
+      if (text.dataset.clipKey) clearTextMask(text);
       return;
     }
 
-    const width = Math.max(1, Math.ceil(rect.width + padding * 2));
-    const height = Math.max(1, Math.ceil(rect.height + padding * 2));
+    const verticalOverlap = Math.min(sheetRect.bottom, rect.bottom) - Math.max(sheetRect.top, rect.top);
+    const horizontalOverlap = Math.min(sheetRect.right, rect.right) - Math.max(sheetRect.left, rect.left);
 
-    const x = Math.max(0, Math.floor(sheetRect.left - rect.left + padding));
-    const y = Math.max(0, Math.floor(sheetRect.top - rect.top + padding));
-    const w = Math.min(width - x, Math.ceil(sheetRect.right - Math.max(sheetRect.left, rect.left)));
-    const h = Math.min(height - y, Math.ceil(sheetRect.bottom - Math.max(sheetRect.top, rect.top)));
-    const key = `${width},${height},${x},${y},${w},${h}`;
+    if (verticalOverlap < minVerticalOverlap || horizontalOverlap < minHorizontalOverlap) {
+      if (text.dataset.clipKey) clearTextMask(text);
+      return;
+    }
 
-    if (w <= 0 || h <= 0) return;
-    if (text.dataset.maskKey === key) return;
-    text.dataset.maskKey = key;
+    /*
+      スマホでのちらつき対策：
+      毎フレームSVGマスク画像を作り直すと、赤シートとの接触点で再描画がちらつく。
+      赤シートは右側から重なるので、clip-pathで右側だけを安定して切り取る。
+    */
+    let hiddenRight = rect.right - Math.max(sheetRect.left, rect.left);
+    hiddenRight = Math.max(0, Math.min(rect.width, snap(hiddenRight + 0.75)));
 
-    const svg = `
-      <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
-        <mask id="m" maskUnits="userSpaceOnUse">
-          <rect x="0" y="0" width="${width}" height="${height}" fill="white"/>
-          <rect x="${x}" y="${y}" width="${w}" height="${h}" fill="black"/>
-        </mask>
-        <rect x="0" y="0" width="${width}" height="${height}" fill="white" mask="url(%23m)"/>
-      </svg>
-    `;
+    if (hiddenRight < minHorizontalOverlap) {
+      if (text.dataset.clipKey) clearTextMask(text);
+      return;
+    }
 
-    const url = `url("data:image/svg+xml,${escapeSvgForDataUrl(svg)}")`;
+    const key = `${snap(rect.width)},${snap(rect.height)},${hiddenRight}`;
+    if (text.dataset.clipKey === key) return;
 
-    text.style.webkitMaskImage = url;
-    text.style.maskImage = url;
-    text.style.webkitMaskSize = `${width}px ${height}px`;
-    text.style.maskSize = `${width}px ${height}px`;
-    text.style.webkitMaskRepeat = "no-repeat";
-    text.style.maskRepeat = "no-repeat";
-    text.style.webkitMaskPosition = `-${padding}px -${padding}px`;
-    text.style.maskPosition = `-${padding}px -${padding}px`;
+    text.dataset.clipKey = key;
+    text.dataset.maskKey = "";
+
+    const clipValue = `inset(0 ${hiddenRight}px 0 0)`;
+    text.style.webkitMaskImage = "";
+    text.style.maskImage = "";
+    text.style.webkitClipPath = clipValue;
+    text.style.clipPath = clipValue;
   });
 }
-
 function preventMobileZoom() {
   let lastTouchEnd = 0;
 
@@ -2631,6 +2702,15 @@ window.addEventListener("resize", () => {
   adjustScrollExtraHeight();
   updateSheetHiddenText();
 });
+
+
+if (document.fonts && document.fonts.ready) {
+  document.fonts.ready.then(() => {
+    fitTableTextOneLine();
+    adjustScrollExtraHeight();
+    updateSheetHiddenText();
+  });
+}
 
 </script>
 
