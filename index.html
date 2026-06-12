@@ -3678,42 +3678,69 @@ function updateSheetHiddenText() {
   texts.forEach(text => {
     const rect = text.getBoundingClientRect();
     if (rect.width <= 0 || rect.height <= 0) {
-      if (text.dataset.clipKey) clearTextMask(text);
+      if (text.dataset.maskKey || text.dataset.clipKey) clearTextMask(text);
       return;
     }
 
-    const verticalOverlap = Math.min(sheetRect.bottom, rect.bottom) - Math.max(sheetRect.top, rect.top);
-    const horizontalOverlap = Math.min(sheetRect.right, rect.right) - Math.max(sheetRect.left, rect.left);
+    const overlapLeft = Math.max(sheetRect.left, rect.left);
+    const overlapRight = Math.min(sheetRect.right, rect.right);
+    const overlapTop = Math.max(sheetRect.top, rect.top);
+    const overlapBottom = Math.min(sheetRect.bottom, rect.bottom);
+    const overlapWidth = overlapRight - overlapLeft;
+    const overlapHeight = overlapBottom - overlapTop;
 
-    if (verticalOverlap < minVerticalOverlap || horizontalOverlap < minHorizontalOverlap) {
-      if (text.dataset.clipKey) clearTextMask(text);
+    if (overlapHeight < minVerticalOverlap || overlapWidth < minHorizontalOverlap) {
+      if (text.dataset.maskKey || text.dataset.clipKey) clearTextMask(text);
       return;
     }
 
     /*
-      スマホでのちらつき対策：
-      毎フレームSVGマスク画像を作り直すと、赤シートとの接触点で再描画がちらつく。
-      赤シートは右側から重なるので、clip-pathで右側だけを安定して切り取る。
+      赤シートと重なった長方形だけをSVGマスクで透明にする。
+      clip-pathで右端をまとめて切ると、文字の一部が触れただけでも行全体の高さで消えるため、
+      上下左右の接触範囲を個別に計算して、その部分だけを抜く。
     */
-    let hiddenRight = rect.right - Math.max(sheetRect.left, rect.left);
-    hiddenRight = Math.max(0, Math.min(rect.width, snap(hiddenRight + 0.75)));
+    const width = Math.max(1, snap(rect.width));
+    const height = Math.max(1, snap(rect.height));
+    const cutX = Math.max(0, Math.min(width, snap(overlapLeft - rect.left)));
+    const cutY = Math.max(0, Math.min(height, snap(overlapTop - rect.top)));
+    const cutWidth = Math.max(0, Math.min(width - cutX, snap(overlapWidth + 0.75)));
+    const cutHeight = Math.max(0, Math.min(height - cutY, snap(overlapHeight + 0.75)));
 
-    if (hiddenRight < minHorizontalOverlap) {
-      if (text.dataset.clipKey) clearTextMask(text);
+    if (cutWidth < minHorizontalOverlap || cutHeight < minVerticalOverlap) {
+      if (text.dataset.maskKey || text.dataset.clipKey) clearTextMask(text);
       return;
     }
 
-    const key = `${snap(rect.width)},${snap(rect.height)},${hiddenRight}`;
-    if (text.dataset.clipKey === key) return;
+    const key = `${width},${height},${cutX},${cutY},${cutWidth},${cutHeight}`;
+    if (text.dataset.maskKey === key) return;
 
-    text.dataset.clipKey = key;
-    text.dataset.maskKey = "";
+    text.dataset.maskKey = key;
+    text.dataset.clipKey = "";
 
-    const clipValue = `inset(0 ${hiddenRight}px 0 0)`;
-    text.style.webkitMaskImage = "";
-    text.style.maskImage = "";
-    text.style.webkitClipPath = clipValue;
-    text.style.clipPath = clipValue;
+    const maskId = `sheet-cut-${key.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
+    const svg = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+        <defs>
+          <mask id="${maskId}" maskUnits="userSpaceOnUse">
+            <rect x="0" y="0" width="${width}" height="${height}" fill="white"/>
+            <rect x="${cutX}" y="${cutY}" width="${cutWidth}" height="${cutHeight}" fill="black"/>
+          </mask>
+        </defs>
+        <rect x="0" y="0" width="${width}" height="${height}" fill="black" mask="url(#${maskId})"/>
+      </svg>
+    `;
+    const maskUrl = `url("data:image/svg+xml,${escapeSvgForDataUrl(svg)}")`;
+
+    text.style.webkitClipPath = "";
+    text.style.clipPath = "";
+    text.style.webkitMaskImage = maskUrl;
+    text.style.maskImage = maskUrl;
+    text.style.webkitMaskSize = "100% 100%";
+    text.style.maskSize = "100% 100%";
+    text.style.webkitMaskRepeat = "no-repeat";
+    text.style.maskRepeat = "no-repeat";
+    text.style.webkitMaskPosition = "0 0";
+    text.style.maskPosition = "0 0";
   });
 }
 function preventMobileZoom() {
