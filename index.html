@@ -114,21 +114,21 @@
   }
 
   .menu-btn.basic-verb-btn {
+    background: #ffe1f1;
+    box-shadow: 0 5px 0 #ffc4df, 0 8px 14px rgba(0,0,0,0.08);
+  }
+
+  .menu-btn.basic-verb-btn:active {
+    box-shadow: 0 1px 0 #ffc4df, 0 4px 8px rgba(0,0,0,0.08);
+  }
+
+  .menu-btn.basic-adjective-btn {
     background: #eaf8ff;
     box-shadow: 0 5px 0 #cfeeff, 0 8px 14px rgba(0,0,0,0.08);
   }
 
-  .menu-btn.basic-verb-btn:active {
-    box-shadow: 0 1px 0 #cfeeff, 0 4px 8px rgba(0,0,0,0.08);
-  }
-
-  .menu-btn.basic-adjective-btn {
-    background: #fff0f8;
-    box-shadow: 0 5px 0 #ffd8ec, 0 8px 14px rgba(0,0,0,0.08);
-  }
-
   .menu-btn.basic-adjective-btn:active {
-    box-shadow: 0 1px 0 #ffd8ec, 0 4px 8px rgba(0,0,0,0.08);
+    box-shadow: 0 1px 0 #cfeeff, 0 4px 8px rgba(0,0,0,0.08);
   }
 
   .page-nav {
@@ -166,7 +166,7 @@
     justify-content: center;
     box-shadow: 0 5px 14px rgba(0,0,0,0.24);
     cursor: pointer;
-    animation: slowPulse 2.6s ease-in-out infinite;
+    animation: slowPulse 1.8s ease-in-out infinite;
   }
 
   .page-arrow:active {
@@ -197,11 +197,11 @@
 
   @keyframes slowPulse {
     0%, 100% {
-      transform: scale(1);
+      transform: scale(0.99);
       box-shadow: 0 5px 14px rgba(0,0,0,0.24);
     }
     50% {
-      transform: scale(1.11);
+      transform: scale(1.10);
       box-shadow: 0 8px 22px rgba(0,0,0,0.34);
     }
   }
@@ -1051,6 +1051,45 @@ const irregularData = [
   ["<ruby>来<rt>く</rt></ruby>る", "<ruby>来<rt>き</rt></ruby>ます"],
   ["する", "します"],
   ["<ruby>勉強<rt>べんきょう</rt></ruby>する", "<ruby>勉強<rt>べんきょう</rt></ruby>します"]
+];
+
+const masuMashouData = [
+  ["<ruby>行<rt>い</rt></ruby>く", "<ruby>行<rt>い</rt></ruby>きましょう"],
+  ["<ruby>飲<rt>の</rt></ruby>む", "<ruby>飲<rt>の</rt></ruby>みましょう"],
+  ["<ruby>聞<rt>き</rt></ruby>く", "<ruby>聞<rt>き</rt></ruby>きましょう"],
+  ["<ruby>読<rt>よ</rt></ruby>む", "<ruby>読<rt>よ</rt></ruby>みましょう"],
+  ["<ruby>書<rt>か</rt></ruby>く", "<ruby>書<rt>か</rt></ruby>きましょう"],
+  ["<ruby>話<rt>はな</rt></ruby>す", "<ruby>話<rt>はな</rt></ruby>しましょう"],
+  ["<ruby>買<rt>か</rt></ruby>う", "<ruby>買<rt>か</rt></ruby>いましょう"],
+  ["<ruby>会<rt>あ</rt></ruby>う", "<ruby>会<rt>あ</rt></ruby>いましょう"],
+  ["<ruby>帰<rt>かえ</rt></ruby>る", "<ruby>帰<rt>かえ</rt></ruby>りましょう"],
+  ["<ruby>待<rt>ま</rt></ruby>つ", "<ruby>待<rt>ま</rt></ruby>ちましょう"]
+];
+
+const masuMasenkaData = [
+  ["<ruby>行<rt>い</rt></ruby>く", "<ruby>行<rt>い</rt></ruby>きませんか"],
+  ["<ruby>飲<rt>の</rt></ruby>む", "<ruby>飲<rt>の</rt></ruby>みませんか"],
+  ["<ruby>聞<rt>き</rt></ruby>く", "<ruby>聞<rt>き</rt></ruby>きませんか"],
+  ["<ruby>読<rt>よ</rt></ruby>む", "<ruby>読<rt>よ</rt></ruby>みませんか"],
+  ["<ruby>書<rt>か</rt></ruby>く", "<ruby>書<rt>か</rt></ruby>きませんか"],
+  ["<ruby>話<rt>はな</rt></ruby>す", "<ruby>話<rt>はな</rt></ruby>しませんか"],
+  ["<ruby>買<rt>か</rt></ruby>う", "<ruby>買<rt>か</rt></ruby>いませんか"],
+  ["<ruby>会<rt>あ</rt></ruby>う", "<ruby>会<rt>あ</rt></ruby>いませんか"],
+  ["<ruby>帰<rt>かえ</rt></ruby>る", "<ruby>帰<rt>かえ</rt></ruby>りませんか"],
+  ["<ruby>待<rt>ま</rt></ruby>つ", "<ruby>待<rt>ま</rt></ruby>ちませんか"]
+];
+
+const masuMashoukaData = [
+  ["<ruby>行<rt>い</rt></ruby>く", "<ruby>行<rt>い</rt></ruby>きましょうか"],
+  ["<ruby>飲<rt>の</rt></ruby>む", "<ruby>飲<rt>の</rt></ruby>みましょうか"],
+  ["<ruby>聞<rt>き</rt></ruby>く", "<ruby>聞<rt>き</rt></ruby>きましょうか"],
+  ["<ruby>読<rt>よ</rt></ruby>む", "<ruby>読<rt>よ</rt></ruby>みましょうか"],
+  ["<ruby>書<rt>か</rt></ruby>く", "<ruby>書<rt>か</rt></ruby>きましょうか"],
+  ["<ruby>話<rt>はな</rt></ruby>す", "<ruby>話<rt>はな</rt></ruby>しましょうか"],
+  ["<ruby>買<rt>か</rt></ruby>う", "<ruby>買<rt>か</rt></ruby>いましょうか"],
+  ["<ruby>会<rt>あ</rt></ruby>う", "<ruby>会<rt>あ</rt></ruby>いましょうか"],
+  ["<ruby>帰<rt>かえ</rt></ruby>る", "<ruby>帰<rt>かえ</rt></ruby>りましょうか"],
+  ["<ruby>待<rt>ま</rt></ruby>つ", "<ruby>待<rt>ま</rt></ruby>ちましょうか"]
 ];
 
 const taiGodanData = [
@@ -2088,6 +2127,22 @@ function makeMasuTable() {
 
   irregularData.forEach(row => {
     html += makeMasuBodyRow(row);
+  });
+
+  [
+    ["ましょう", masuMashouData],
+    ["ませんか", masuMasenkaData],
+    ["ましょうか", masuMashoukaData]
+  ].forEach(([label, rows]) => {
+    html += `
+      <tr class="group-row">
+        <td colspan="2">${label}</td>
+      </tr>
+    `;
+
+    rows.forEach(row => {
+      html += makeMasuBodyRow(row);
+    });
   });
 
   html += `
@@ -3413,19 +3468,43 @@ function fitTableTextOneLine() {
   if (!table) return;
 
   const maxFont = 18;
-  const minFont = 7;
+  const minTableFont = 13;
+  const minCellFont = 7;
   const wrap = document.querySelector(".table-wrap");
+
+  const shrinkTargets = () => Array.from(table.querySelectorAll(
+    "th, .word-text, .answer-text, .group-row td"
+  )).filter(el => el.offsetParent !== null);
 
   const resetFont = () => {
     table.classList.remove("tight-table");
     table.classList.add("fitting-table");
     table.style.setProperty("--table-font-size", `${maxFont}px`);
     table.dataset.fittedFontSize = String(maxFont);
+    shrinkTargets().forEach(el => {
+      el.style.removeProperty("font-size");
+    });
   };
 
   const targets = () => Array.from(table.querySelectorAll(
     "th, td, .word-text, .answer-text, .group-row td"
   )).filter(el => el.offsetParent !== null);
+
+  const elementOverflows = (el) => {
+    const rect = el.getBoundingClientRect();
+    if (rect.width <= 0 || rect.height <= 0) return false;
+
+    if (el.scrollWidth > el.clientWidth + 0.5) return true;
+    if (el.scrollHeight > el.clientHeight + 1.5 && !el.matches("ruby")) return true;
+
+    const cell = el.closest("td, th");
+    if (cell && el !== cell) {
+      const cellRect = cell.getBoundingClientRect();
+      if (rect.left < cellRect.left - 0.5 || rect.right > cellRect.right + 0.5) return true;
+    }
+
+    return false;
+  };
 
   const isOverflowing = () => {
     const tableRect = table.getBoundingClientRect();
@@ -3433,33 +3512,30 @@ function fitTableTextOneLine() {
 
     if (tableRect.width > wrapRect.width + 0.5) return true;
 
-    return targets().some(el => {
-      const rect = el.getBoundingClientRect();
-      if (rect.width <= 0 || rect.height <= 0) return false;
-
-      if (el.scrollWidth > el.clientWidth + 0.5) return true;
-      if (el.scrollHeight > el.clientHeight + 1.5 && !el.matches("ruby")) return true;
-
-      const cell = el.closest("td, th");
-      if (cell && el !== cell) {
-        const cellRect = cell.getBoundingClientRect();
-        if (rect.left < cellRect.left - 0.5 || rect.right > cellRect.right + 0.5) return true;
-      }
-      return false;
-    });
+    return targets().some(elementOverflows);
   };
 
   resetFont();
 
   let size = maxFont;
-  while (size > minFont && isOverflowing()) {
+  while (size > minTableFont && isOverflowing()) {
     size -= 1;
     table.style.setProperty("--table-font-size", `${size}px`);
   }
 
+  let hasCellShrink = false;
+  shrinkTargets().forEach(el => {
+    let cellSize = size;
+    while (cellSize > minCellFont && elementOverflows(el)) {
+      cellSize -= 1;
+      el.style.setProperty("font-size", `${cellSize}px`, "important");
+      hasCellShrink = true;
+    }
+  });
+
   table.dataset.fittedFontSize = String(size);
   table.classList.remove("fitting-table");
-  table.classList.toggle("tight-table", size < maxFont);
+  table.classList.toggle("tight-table", size < maxFont || hasCellShrink);
 }
 function adjustScrollExtraHeight() {
   const extra = document.querySelector(".scroll-extra-y");
