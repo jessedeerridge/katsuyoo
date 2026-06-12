@@ -725,17 +725,18 @@
   }
 
   .question-memo-card .memo-pair {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 3px;
+    max-width: 100%;
     min-width: 0;
   }
 
   .question-memo-card .memo-left,
   .question-memo-card .memo-right {
     display: block;
-    flex: 1 1 0;
+    flex: 0 1 auto;
     min-width: 0;
     max-width: 54px;
     overflow: hidden;
