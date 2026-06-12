@@ -892,6 +892,21 @@
     transform: none;
   }
 
+  #tableArea td.word-align-right .word-text {
+    text-align: right;
+    padding-right: 2em;
+    transform: none !important;
+  }
+
+  #tableArea td.answer-align-left {
+    text-align: left;
+    padding-left: 2em;
+  }
+
+  #tableArea td.answer-align-left .answer-text {
+    transform: none !important;
+  }
+
   #tableArea .answer-text ruby,
   #tableArea .word-text ruby {
     max-width: 100%;
@@ -3480,6 +3495,51 @@ function toggleQuestionMark(button) {
 }
 
 
+function getMainTextLength(el) {
+  if (!el) return 0;
+
+  const clone = el.cloneNode(true);
+  clone.querySelectorAll("rt").forEach(rt => rt.remove());
+
+  return Array.from((clone.textContent || "").replace(/[\s　]+/g, "").trim()).length;
+}
+
+function clearTableAlignmentClasses(table) {
+  table.querySelectorAll("td.word-align-right, td.answer-align-left").forEach(cell => {
+    cell.classList.remove("word-align-right", "answer-align-left");
+  });
+
+  table.querySelectorAll(".fit-shrunk").forEach(el => {
+    el.classList.remove("fit-shrunk");
+  });
+}
+
+function applyTableAlignmentClasses(table, elementOverflows) {
+  table.querySelectorAll("tr").forEach(row => {
+    if (row.classList.contains("group-row")) return;
+
+    const cells = row.querySelectorAll("td");
+    if (cells.length < 2) return;
+
+    const wordText = cells[0].querySelector(".word-text");
+    const answerText = cells[1].querySelector(".answer-text");
+
+    if (wordText && !wordText.classList.contains("fit-shrunk")) {
+      cells[0].classList.add("word-align-right");
+      if (elementOverflows(wordText) || elementOverflows(cells[0])) {
+        cells[0].classList.remove("word-align-right");
+      }
+    }
+
+    if (answerText && !answerText.classList.contains("fit-shrunk") && getMainTextLength(answerText) <= 9) {
+      cells[1].classList.add("answer-align-left");
+      if (elementOverflows(answerText) || elementOverflows(cells[1])) {
+        cells[1].classList.remove("answer-align-left");
+      }
+    }
+  });
+}
+
 function fitTableTextOneLine() {
   const table = document.querySelector("#tableArea table");
   if (!table) return;
@@ -3496,6 +3556,7 @@ function fitTableTextOneLine() {
   const resetFont = () => {
     table.classList.remove("tight-table");
     table.classList.add("fitting-table");
+    clearTableAlignmentClasses(table);
     table.style.setProperty("--table-font-size", `${maxFont}px`);
     table.dataset.fittedFontSize = String(maxFont);
     shrinkTargets().forEach(el => {
@@ -3548,11 +3609,16 @@ function fitTableTextOneLine() {
       el.style.setProperty("font-size", `${cellSize}px`, "important");
       hasCellShrink = true;
     }
+
+    if (size < maxFont || cellSize < size) {
+      el.classList.add("fit-shrunk");
+    }
   });
 
   table.dataset.fittedFontSize = String(size);
   table.classList.remove("fitting-table");
   table.classList.toggle("tight-table", size < maxFont || hasCellShrink);
+  applyTableAlignmentClasses(table, elementOverflows);
 }
 function adjustScrollExtraHeight() {
   const extra = document.querySelector(".scroll-extra-y");
