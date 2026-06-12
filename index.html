@@ -484,7 +484,7 @@
     -webkit-mask-origin: border-box;
     mask-origin: border-box;
 
-    will-change: auto;
+    will-change: clip-path;
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
     contain: paint;
@@ -3748,6 +3748,7 @@ function updateSheetHiddenText() {
   if (!sheet || texts.length === 0) return;
 
   const sheetPolygon = getSheetPolygon(sheet);
+  const sheetBounds = getPolygonBounds(sheetPolygon);
   const sheetLeftTop = sheetPolygon[0];
   const sheetLeftBottom = sheetPolygon[3];
   const snap = value => Math.round(value);
@@ -3780,24 +3781,39 @@ function updateSheetHiddenText() {
     /*
       SVG maskのdata URLをスクロール中に作り直すと、特にスマホで接触部分がちらつく。
       赤シートは右側からかぶさるため、回転後の左辺に合わせたclip-pathで、
-      表示してよい左側だけを残す。
+      赤シートと重なっている上下範囲だけを切り抜く。
     */
     const width = Math.max(1, snap(rect.width));
-    const topCutX = Math.max(0, Math.min(width, snap(lineXAtY(rect.top) - rect.left)));
-    const bottomCutX = Math.max(0, Math.min(width, snap(lineXAtY(rect.bottom) - rect.left)));
+    const height = Math.max(1, snap(rect.height));
+    const overlapTop = Math.max(0, Math.min(height, snap(sheetBounds.top - rect.top)));
+    const overlapBottom = Math.max(0, Math.min(height, snap(sheetBounds.bottom - rect.top)));
+    const topCutX = Math.max(0, Math.min(width, snap(lineXAtY(rect.top + overlapTop) - rect.left)));
+    const bottomCutX = Math.max(0, Math.min(width, snap(lineXAtY(rect.top + overlapBottom) - rect.left)));
 
-    if (topCutX >= width && bottomCutX >= width) {
+    if (overlapBottom <= overlapTop || (topCutX >= width && bottomCutX >= width)) {
       if (text.dataset.maskKey || text.dataset.clipKey) clearTextMask(text);
       return;
     }
 
-    const key = `${width},${topCutX},${bottomCutX}`;
+    const key = `${width},${height},${overlapTop},${overlapBottom},${topCutX},${bottomCutX}`;
     if (text.dataset.clipKey === key) return;
 
     text.dataset.clipKey = key;
     text.dataset.maskKey = "";
 
-    const clipValue = `polygon(0 0, ${topCutX}px 0, ${bottomCutX}px 100%, 0 100%)`;
+    const points = [`0 0`];
+    if (overlapTop > 0) {
+      points.push(`${width}px 0`, `${width}px ${overlapTop}px`, `${topCutX}px ${overlapTop}px`);
+    } else {
+      points.push(`${topCutX}px 0`);
+    }
+    points.push(`${bottomCutX}px ${overlapBottom}px`);
+    if (overlapBottom < height) {
+      points.push(`${width}px ${overlapBottom}px`, `${width}px ${height}px`);
+    }
+    points.push(`0 ${height}px`);
+    const pointsValue = points.join(", ");
+    const clipValue = `polygon(${pointsValue})`;
     text.style.webkitMaskImage = "";
     text.style.maskImage = "";
     text.style.webkitClipPath = clipValue;
