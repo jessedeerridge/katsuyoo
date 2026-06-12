@@ -3726,16 +3726,6 @@ function polygonIntersectsRect(polygon, rect) {
   });
 }
 
-function escapeSvgForDataUrl(svg) {
-  return svg
-    .replace(/#/g, "%23")
-    .replace(/</g, "%3C")
-    .replace(/>/g, "%3E")
-    .replace(/"/g, "'")
-    .replace(/\n/g, "")
-    .replace(/\s{2,}/g, " ");
-}
-
 function clearTextMask(text) {
   text.style.webkitMaskImage = "";
   text.style.maskImage = "";
@@ -3758,8 +3748,15 @@ function updateSheetHiddenText() {
   if (!sheet || texts.length === 0) return;
 
   const sheetPolygon = getSheetPolygon(sheet);
-  const dpr = window.devicePixelRatio || 1;
-  const snap = value => Math.round(value * dpr) / dpr;
+  const sheetLeftTop = sheetPolygon[0];
+  const sheetLeftBottom = sheetPolygon[3];
+  const snap = value => Math.round(value);
+  const lineXAtY = y => {
+    const dy = sheetLeftBottom.y - sheetLeftTop.y;
+    if (Math.abs(dy) < 0.01) return sheetLeftTop.x;
+    const ratio = (y - sheetLeftTop.y) / dy;
+    return sheetLeftTop.x + (sheetLeftBottom.x - sheetLeftTop.x) * ratio;
+  };
 
   texts.forEach(text => {
     const rect = text.getBoundingClientRect();
@@ -3781,48 +3778,30 @@ function updateSheetHiddenText() {
     }
 
     /*
-      赤シートと重なった斜めの四角形だけをSVGマスクで透明にする。
-      getBoundingClientRect()だけで判定すると回転後の外接長方形になり、赤シートの傾きが無視されるため、
-      CSS transform後の四隅を文字要素の座標へ変換して、その多角形だけを抜く。
+      SVG maskのdata URLをスクロール中に作り直すと、特にスマホで接触部分がちらつく。
+      赤シートは右側からかぶさるため、回転後の左辺に合わせたclip-pathで、
+      表示してよい左側だけを残す。
     */
     const width = Math.max(1, snap(rect.width));
-    const height = Math.max(1, snap(rect.height));
-    const maskPoints = sheetPolygon.map(point => ({
-      x: snap(point.x - rect.left),
-      y: snap(point.y - rect.top)
-    }));
-    const pointsValue = maskPoints.map(point => `${point.x},${point.y}`).join(" ");
+    const topCutX = Math.max(0, Math.min(width, snap(lineXAtY(rect.top) - rect.left)));
+    const bottomCutX = Math.max(0, Math.min(width, snap(lineXAtY(rect.bottom) - rect.left)));
 
-    const key = `${width},${height},${pointsValue}`;
-    if (text.dataset.maskKey === key) return;
+    if (topCutX >= width && bottomCutX >= width) {
+      if (text.dataset.maskKey || text.dataset.clipKey) clearTextMask(text);
+      return;
+    }
 
-    text.dataset.maskKey = key;
-    text.dataset.clipKey = "";
+    const key = `${width},${topCutX},${bottomCutX}`;
+    if (text.dataset.clipKey === key) return;
 
-    const maskId = `sheet-cut-${key.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
-    const svg = `
-      <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
-        <defs>
-          <mask id="${maskId}" maskUnits="userSpaceOnUse">
-            <rect x="0" y="0" width="${width}" height="${height}" fill="white"/>
-            <polygon points="${pointsValue}" fill="black"/>
-          </mask>
-        </defs>
-        <rect x="0" y="0" width="${width}" height="${height}" fill="black" mask="url(#${maskId})"/>
-      </svg>
-    `;
-    const maskUrl = `url("data:image/svg+xml,${escapeSvgForDataUrl(svg)}")`;
+    text.dataset.clipKey = key;
+    text.dataset.maskKey = "";
 
-    text.style.webkitClipPath = "";
-    text.style.clipPath = "";
-    text.style.webkitMaskImage = maskUrl;
-    text.style.maskImage = maskUrl;
-    text.style.webkitMaskSize = "100% 100%";
-    text.style.maskSize = "100% 100%";
-    text.style.webkitMaskRepeat = "no-repeat";
-    text.style.maskRepeat = "no-repeat";
-    text.style.webkitMaskPosition = "0 0";
-    text.style.maskPosition = "0 0";
+    const clipValue = `polygon(0 0, ${topCutX}px 0, ${bottomCutX}px 100%, 0 100%)`;
+    text.style.webkitMaskImage = "";
+    text.style.maskImage = "";
+    text.style.webkitClipPath = clipValue;
+    text.style.clipPath = clipValue;
   });
 }
 function preventMobileZoom() {
