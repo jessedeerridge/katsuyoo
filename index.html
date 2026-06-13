@@ -677,7 +677,7 @@
     min-width: 0;
     max-width: calc(100vw - 16px);
     min-height: 44px;
-    padding: 7px 8px 6px;
+    padding: 7px 0 6px;
     border-radius: 12px;
     background: rgba(255, 255, 255, 0.86);
     border: 1.5px dashed rgba(255, 111, 174, 0.62);
@@ -748,7 +748,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 3px;
+    gap: 1px;
     width: max-content;
     max-width: 100%;
     min-width: 0;
@@ -792,7 +792,7 @@
   @media (max-width: 420px) {
     .question-memo-card {
       min-height: 34px;
-      padding: 5px 6px 4px;
+      padding: 5px 0 4px;
       border-radius: 10px;
       font-size: 8px;
     }
@@ -1762,7 +1762,7 @@ function getMemoTextWidth(item, isSmall, fontBump = 0) {
   const leftText = getMemoMeasureText(displayItem.leftHtml, displayItem.leftText);
   const rightText = getMemoMeasureText(displayItem.rightHtml, displayItem.rightText);
   const fontSize = (isSmall ? 8 : 12) + fontBump;
-  const horizontalPadding = isSmall ? 18 : 24;
+  const horizontalPadding = 2;
   const font = `700 ${fontSize}px "Hiragino Maru Gothic ProN", "Yu Gothic", sans-serif`;
 
   if (!getMemoTextWidth.canvas) {
