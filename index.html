@@ -676,15 +676,15 @@
     width: auto;
     min-width: 0;
     max-width: calc(100vw - 16px);
-    min-height: 38px;
-    padding: 6px 0;
+    min-height: 44px;
+    padding: 7px 8px 6px;
     border-radius: 12px;
     background: rgba(255, 255, 255, 0.86);
     border: 1.5px dashed rgba(255, 111, 174, 0.62);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.10);
     color: #555;
     font-size: 12px;
-    line-height: 1.15;
+    line-height: 1.25;
     font-weight: 700;
     text-align: center;
     transform: var(--memo-rotation, rotate(0deg));
@@ -749,9 +749,12 @@
     align-items: center;
     justify-content: center;
     gap: 3px;
-    width: 100%;
+    width: max-content;
     max-width: 100%;
     min-width: 0;
+    line-height: 1.25;
+    transform: scale(var(--memo-text-scale, 1));
+    transform-origin: center;
   }
 
   .question-memo-card .memo-left,
@@ -760,7 +763,7 @@
     flex: 0 1 auto;
     min-width: 0;
     max-width: none;
-    overflow: hidden;
+    overflow: visible;
     text-overflow: clip;
   }
 
@@ -783,12 +786,13 @@
   .question-memo-card rt {
     font-size: 0.55em;
     color: #777;
+    line-height: 1;
   }
 
   @media (max-width: 420px) {
     .question-memo-card {
-      min-height: 30px;
-      padding: 4px 0;
+      min-height: 34px;
+      padding: 5px 6px 4px;
       border-radius: 10px;
       font-size: 8px;
     }
@@ -1515,6 +1519,7 @@ const tokiVerbData = [
 const QUESTION_STORAGE_KEY = "katsuyouQuestionMarks_v1";
 const QUESTION_MEMO_LIMIT = 12;
 const QUESTION_MEMO_ZONE_LIMIT = 6;
+const QUESTION_ROW_KEY_PREFIX = "row";
 let currentTableType = "";
 
 function isValidQuestionItem(item) {
@@ -1533,7 +1538,8 @@ function normalizeQuestionItem(item) {
   const rightText = item.rightText || stripHtmlForKey(rightHtml);
   const type = item.type || "";
   const key = item.key || `${type}::${leftText}::${rightText}`;
-  return { key, type, leftHtml, rightHtml, leftText, rightText };
+  const legacyKey = item.legacyKey || `${type}::${leftText}::${rightText}`;
+  return { key, legacyKey, type, leftHtml, rightHtml, leftText, rightText };
 }
 
 function safeParseQuestionStore() {
@@ -1584,6 +1590,17 @@ function stripHtmlForKey(html) {
   return (tmp.textContent || "").replace(/\s+/g, "").trim();
 }
 
+function getQuestionRowIndex(row) {
+  if (!row) return -1;
+  const rows = Array.from(document.querySelectorAll("#tableArea tr"))
+    .filter(candidate => candidate.querySelector(".question-box"));
+  return rows.indexOf(row);
+}
+
+function makeStableQuestionKey(type, rowIndex) {
+  return `${type}::${QUESTION_ROW_KEY_PREFIX}:${rowIndex}`;
+}
+
 function getQuestionInfo(button) {
   const row = button.closest("tr");
   if (!row) return null;
@@ -1599,18 +1616,40 @@ function getQuestionInfo(button) {
   if (!leftText || !rightText) return null;
 
   const type = currentTableType || document.getElementById("tableTitle")?.textContent || "";
-  const key = `${type}::${leftText}::${rightText}`;
-  return { key, type, leftHtml, rightHtml, leftText, rightText };
+  const rowIndex = getQuestionRowIndex(row);
+  const legacyKey = `${type}::${leftText}::${rightText}`;
+  const key = rowIndex >= 0 ? makeStableQuestionKey(type, rowIndex) : legacyKey;
+  return { key, legacyKey, type, rowIndex, leftHtml, rightHtml, leftText, rightText };
+}
+
+function questionItemMatchesInfo(item, info) {
+  if (!item || !info) return false;
+  return item.key === info.key || item.key === info.legacyKey || item.legacyKey === info.key || item.legacyKey === info.legacyKey;
 }
 
 function restoreQuestionMarks() {
-  const savedKeys = new Set(safeParseQuestionStore().map(item => item.key));
+  const items = safeParseQuestionStore();
+  let changed = false;
+
   document.querySelectorAll(".question-box").forEach(button => {
     const info = getQuestionInfo(button);
     if (!info) return;
+    const savedIndex = items.findIndex(item => questionItemMatchesInfo(item, info));
+    const isSaved = savedIndex >= 0;
     button.dataset.questionKey = info.key;
-    button.classList.toggle("active", savedKeys.has(info.key));
+    button.dataset.legacyQuestionKey = info.legacyKey;
+    button.classList.toggle("active", isSaved);
+
+    if (isSaved && (items[savedIndex].key !== info.key || items[savedIndex].legacyKey !== info.legacyKey)) {
+      items[savedIndex] = normalizeQuestionItem(info);
+      changed = true;
+    }
   });
+
+  if (changed) {
+    saveQuestionStore(items);
+    renderQuestionMemoLayer();
+  }
 }
 
 function memoRectsOverlap(a, b, gap = 8) {
@@ -1723,6 +1762,7 @@ function getMemoTextWidth(item, isSmall, fontBump = 0) {
   const leftText = getMemoMeasureText(displayItem.leftHtml, displayItem.leftText);
   const rightText = getMemoMeasureText(displayItem.rightHtml, displayItem.rightText);
   const fontSize = (isSmall ? 8 : 12) + fontBump;
+  const horizontalPadding = isSmall ? 18 : 24;
   const font = `700 ${fontSize}px "Hiragino Maru Gothic ProN", "Yu Gothic", sans-serif`;
 
   if (!getMemoTextWidth.canvas) {
@@ -1738,7 +1778,7 @@ function getMemoTextWidth(item, isSmall, fontBump = 0) {
   const leftWidth = ctx.measureText(leftText).width;
   const arrowWidth = ctx.measureText("→").width;
   const rightWidth = ctx.measureText(rightText).width;
-  return Math.ceil(leftWidth + arrowWidth + rightWidth + 6);
+  return Math.ceil(leftWidth + arrowWidth + rightWidth + horizontalPadding);
 }
 
 function arrangeMemoRow(rowItems) {
@@ -1770,7 +1810,7 @@ function getMemoLayout(items) {
   const rowsPerZone = Math.ceil(QUESTION_MEMO_ZONE_LIMIT / columns);
   const baseCardW = Math.floor((vw - margin * 2 - gap * (columns - 1)) / columns);
   const maxCardW = Math.max(baseCardW, vw - margin * 2);
-  const cardH = isSmall ? 36 : 46;
+  const cardH = isSmall ? 40 : 52;
   const title = document.querySelector(".page-title");
   const titleRect = title ? title.getBoundingClientRect() : null;
   const topY = titleRect ? Math.max(margin, Math.ceil(titleRect.bottom + 6)) : margin;
@@ -1926,6 +1966,21 @@ function renderQuestionMemoLayer() {
     });
     layer.appendChild(card);
   });
+
+  fitMemoCardText();
+}
+
+
+function fitMemoCardText() {
+  document.querySelectorAll(".question-memo-card").forEach(card => {
+    const pair = card.querySelector(".memo-pair");
+    if (!pair) return;
+
+    pair.style.setProperty("--memo-text-scale", "1");
+    const availableWidth = Math.max(1, card.clientWidth - 2);
+    const scale = Math.min(1, availableWidth / Math.max(1, pair.scrollWidth));
+    pair.style.setProperty("--memo-text-scale", String(Math.max(0.82, Math.floor(scale * 100) / 100)));
+  });
 }
 
 let maskAnimationId = null;
@@ -2027,7 +2082,7 @@ function scrollToQuestionKey(key) {
   const buttons = Array.from(document.querySelectorAll(".question-box"));
   const target = buttons.find(button => {
     const info = getQuestionInfo(button);
-    return info && info.key === key;
+    return info && (info.key === key || info.legacyKey === key);
   });
   if (!target) return;
   target.classList.add("active");
@@ -3468,7 +3523,7 @@ function toggleQuestionMark(button) {
   // 見えない壊れた保存データを先に除外する。
   // これで、実際は0個なのに items.length > 0 になって空き判定へ進む問題を防ぐ。
   const items = safeParseQuestionStore();
-  const index = items.findIndex(item => item.key === info.key);
+  const index = items.findIndex(item => questionItemMatchesInfo(item, info));
 
   if (index >= 0) {
     items.splice(index, 1);
