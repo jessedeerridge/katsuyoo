@@ -1027,13 +1027,11 @@
       <button class="menu-btn" onclick="showTable('-やすい')">-やすい</button>
       <button class="menu-btn" onclick="showTable('-すぎ')">-すぎ</button>
       <button class="menu-btn" onclick="showTable('Vておきます')">Vておきます</button>
-      <button class="menu-btn" onclick="showTable('Vてあります')">Vてあります</button>
+      <button class="menu-btn" onclick="showTable('Vたらいいですか')">Vたらいいですか</button>
       <button class="menu-btn" onclick="showTable('Vてしまった')">Vてしまった</button>
       <button class="menu-btn" onclick="showTable('Vてもらいました')">Vてもらいました</button>
-      <button class="menu-btn" onclick="showTable('Vてもらえませんか')">Vてもらえませんか</button>
       <button class="menu-btn" onclick="showTable('Vなければならない')">Vなければならない</button>
-      <button class="menu-btn" onclick="showTable('Vたらいいですか')">Vたらいいですか</button>
-      <button class="menu-btn" onclick="showTable('Vたらどうですか')">Vたらどうですか</button>
+      <button class="menu-btn" onclick="showTable('Vてもらえませんか')">Vてもらえませんか</button>
     </div>
 
     <div class="menu-page" data-page="3">
@@ -2249,8 +2247,6 @@ function showTable(type, focusKey = "") {
     makeSugiTable();
   } else if (type === "Vておきます") {
     makeTeOkimasuTable();
-  } else if (type === "Vてあります") {
-    makeTeArimasuTable();
   } else if (type === "Vてしまった") {
     makeTeShimattaTable();
   } else if (type === "Vてもらいました") {
@@ -2261,8 +2257,6 @@ function showTable(type, focusKey = "") {
     makeNakerebaNaranaiTable();
   } else if (type === "Vたらいいですか") {
     makeTaraIiDesuKaTable();
-  } else if (type === "Vたらどうですか") {
-    makeTaraDouDesuKaTable();
   } else if (type === "Vよう" || type === "よう") {
     makeYouTable();
   } else if (type === "V可能" || type === "可能" || type === "可能形") {
@@ -3774,13 +3768,6 @@ const teOkimasuData = [
   ["<ruby>寝<rt>ね</rt></ruby>る <ruby>前<rt>まえ</rt></ruby>に <ruby>窓<rt>まど</rt></ruby>を <ruby>閉<rt>し</rt></ruby>める", "<ruby>寝<rt>ね</rt></ruby>る <ruby>前<rt>まえ</rt></ruby>に <ruby>窓<rt>まど</rt></ruby>を <ruby>閉<rt>し</rt></ruby>めておきます"]
 ];
 
-const teArimasuData = [
-  ["<ruby>窓<rt>まど</rt></ruby>を <ruby>開<rt>あ</rt></ruby>ける", "<ruby>窓<rt>まど</rt></ruby>が <ruby>開<rt>あ</rt></ruby>けてあります"],
-  ["<ruby>机<rt>つくえ</rt></ruby>に <ruby>本<rt>ほん</rt></ruby>を <ruby>置<rt>お</rt></ruby>く", "<ruby>机<rt>つくえ</rt></ruby>に <ruby>本<rt>ほん</rt></ruby>が <ruby>置<rt>お</rt></ruby>いてあります"],
-  ["<ruby>壁<rt>かべ</rt></ruby>に <ruby>写真<rt>しゃしん</rt></ruby>を <ruby>貼<rt>は</rt></ruby>る", "<ruby>壁<rt>かべ</rt></ruby>に <ruby>写真<rt>しゃしん</rt></ruby>が <ruby>貼<rt>は</rt></ruby>ってあります"],
-  ["<ruby>名前<rt>なまえ</rt></ruby>を <ruby>書<rt>か</rt></ruby>く", "<ruby>名前<rt>なまえ</rt></ruby>が <ruby>書<rt>か</rt></ruby>いてあります"],
-  ["<ruby>電気<rt>でんき</rt></ruby>を つける", "<ruby>電気<rt>でんき</rt></ruby>が つけてあります"]
-];
 
 const teShimattaData = [
   ["<ruby>財布<rt>さいふ</rt></ruby>を <ruby>忘<rt>わす</rt></ruby>れる", "<ruby>財布<rt>さいふ</rt></ruby>を <ruby>忘<rt>わす</rt></ruby>れてしまった"],
@@ -3826,26 +3813,17 @@ const taraIiDesuKaData = [
   ["<ruby>宿題<rt>しゅくだい</rt></ruby>を <ruby>出<rt>だ</rt></ruby>したい", "いつ <ruby>出<rt>だ</rt></ruby>したらいいですか"]
 ];
 
-const taraDouDesuKaData = [
-  ["<ruby>疲<rt>つか</rt></ruby>れました", "<ruby>少<rt>すこ</rt></ruby>し <ruby>休<rt>やす</rt></ruby>んだらどうですか"],
-  ["<ruby>頭<rt>あたま</rt></ruby>が <ruby>痛<rt>いた</rt></ruby>いです", "<ruby>薬<rt>くすり</rt></ruby>を <ruby>飲<rt>の</rt></ruby>んだらどうですか"],
-  ["<ruby>道<rt>みち</rt></ruby>が わかりません", "<ruby>駅員<rt>えきいん</rt></ruby>に <ruby>聞<rt>き</rt></ruby>いたらどうですか"],
-  ["<ruby>日本語<rt>にほんご</rt></ruby>が <ruby>難<rt>むずか</rt></ruby>しいです", "<ruby>毎日<rt>まいにち</rt></ruby> <ruby>練習<rt>れんしゅう</rt></ruby>したらどうですか"],
-  ["プレゼントを <ruby>探<rt>さが</rt></ruby>しています", "デパートへ <ruby>行<rt>い</rt></ruby>ったらどうですか"]
-];
 
 function makeSouLooksTable() { makeFlat30Table("-そう（好想）", "-そう（看起来）", souLooksData, "もとの形"); }
 function makeSouHearsayTable() { makeFlat30Table("-そう（听说）", "-そうです（听说）", souHearsayData, "ヒント"); }
 function makeYasuiTable() { makeFlat30Table("-やすい", "-やすい", yasuiData, "辞書形"); }
 function makeSugiTable() { makeFlat30Table("-すぎ", "-すぎ", sugiData, "もとの形"); }
 function makeTeOkimasuTable() { makeFlat30Table("Vておきます", "Vておきます", teOkimasuData, "ヒント"); }
-function makeTeArimasuTable() { makeFlat30Table("Vてあります", "Vてあります", teArimasuData, "ヒント"); }
 function makeTeShimattaTable() { makeFlat30Table("Vてしまった", "Vてしまった", teShimattaData, "ヒント"); }
 function makeTeMoraimashitaTable() { makeFlat30Table("Vてもらいました", "Vてもらいました", teMoraimashitaData, "ヒント"); }
 function makeTeMoraemasenkaTable() { makeFlat30Table("Vてもらえませんか", "Vてもらえませんか", teMoraemasenkaData, "ヒント"); }
 function makeNakerebaNaranaiTable() { makeFlat30Table("Vなければならない", "Vなければならない", nakerebaNaranaiData, "辞書形"); }
 function makeTaraIiDesuKaTable() { makeFlat30Table("Vたらいいですか", "Vたらいいですか", taraIiDesuKaData, "ヒント"); }
-function makeTaraDouDesuKaTable() { makeFlat30Table("Vたらどうですか", "Vたらどうですか", taraDouDesuKaData, "ヒント"); }
 
 function makePassiveTable() {
   makeGroupedExpressionTable("Vられる", passiveData);
