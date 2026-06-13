@@ -1573,11 +1573,22 @@ const tokiVerbData = [
 
 const QUESTION_STORAGE_KEY = "katsuyouQuestionMarks_v1";
 const QUESTION_STORAGE_CACHE_KEY = "katsuyouQuestionMarks_cache_v1";
+const QUESTION_STORAGE_MIRROR_KEY = "katsuyouQuestionMarks_mirror_v2";
+const QUESTION_SESSION_STORAGE_KEY = "katsuyouQuestionMarks_session_v1";
 const QUESTION_STORAGE_PREFIX = "katsuyouQuestionMarks";
+const QUESTION_IDB_NAME = "katsuyouQuestionMarksDb";
+const QUESTION_IDB_STORE = "questionMarks";
+const QUESTION_IDB_RECORD_KEY = "activeMarks";
+const QUESTION_IDB_VERSION = 1;
 const QUESTION_MEMO_DISPLAY_LIMIT = 12;
 const QUESTION_MEMO_ZONE_LIMIT = 6;
 const QUESTION_ROW_KEY_PREFIX = "row";
 let currentTableType = "";
+let questionStoreMemory = [];
+let questionStoreLastJson = "[]";
+let questionIndexedDbPromise = null;
+let questionIndexedDbHydrated = false;
+let questionIndexedDbPendingJson = null;
 
 function isValidQuestionItem(item) {
   if (!item || typeof item !== "object") return false;
@@ -1623,18 +1634,58 @@ function parseQuestionStoreValue(raw) {
   }
 }
 
+function getBrowserStorage(name) {
+  try {
+    return window[name] || null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function readStorageValue(storage, key) {
+  try {
+    return storage ? storage.getItem(key) : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function writeStorageValue(storage, key, value) {
+  try {
+    if (storage) storage.setItem(key, value);
+  } catch (e) {
+    // 容量不足・プライベートモードなどで書けない場合は、他の保存先とメモリで守る。
+  }
+}
+
 function getQuestionStoreRawLists() {
   const lists = [];
-  try {
-    lists.push(parseQuestionStoreValue(localStorage.getItem(QUESTION_STORAGE_KEY)));
-    lists.push(parseQuestionStoreValue(localStorage.getItem(QUESTION_STORAGE_CACHE_KEY)));
 
+  // まず画面を開いている間のメモリを入れる。ブラウザ保存が一時的に読めない時でも、
+  // safeParseQuestionStore() が空データで上書きしてしまう事故を防ぐ。
+  lists.push(questionStoreMemory);
+
+  const primaryKeys = [
+    QUESTION_STORAGE_KEY,
+    QUESTION_STORAGE_CACHE_KEY,
+    QUESTION_STORAGE_MIRROR_KEY
+  ];
+
+  primaryKeys.forEach(key => {
+    lists.push(parseQuestionStoreValue(readStorageValue(getBrowserStorage("localStorage"), key)));
+  });
+  lists.push(parseQuestionStoreValue(readStorageValue(getBrowserStorage("sessionStorage"), QUESTION_SESSION_STORAGE_KEY)));
+
+  try {
     // コードを書き替えた時に保存キーの名前が変わっても、同じ接頭辞の古い？記録を拾って復元する。
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
+    // 古いキーは消さずに残し、万一メイン保存が消えた時の避難用バックアップとして使う。
+    const local = getBrowserStorage("localStorage");
+    if (!local) return lists;
+    for (let i = 0; i < local.length; i++) {
+      const key = local.key(i);
       if (!key || !key.startsWith(QUESTION_STORAGE_PREFIX)) continue;
-      if (key === QUESTION_STORAGE_KEY || key === QUESTION_STORAGE_CACHE_KEY) continue;
-      lists.push(parseQuestionStoreValue(localStorage.getItem(key)));
+      if (primaryKeys.includes(key)) continue;
+      lists.push(parseQuestionStoreValue(local.getItem(key)));
     }
   } catch (e) {
     return lists;
@@ -1667,39 +1718,124 @@ function cleanQuestionStoreItems(rawLists) {
 function safeParseQuestionStore() {
   const cleaned = cleanQuestionStoreItems(getQuestionStoreRawLists());
 
-  // 以前のバージョンで保存キーが変わったり、メイン保存欄だけ消えたりしても、
-  // キャッシュ側から毎回復元できるように両方へ同じ内容を書いておく。
+  // 読み取れた内容は、localStorage / sessionStorage / IndexedDB / メモリへ毎回ミラーする。
+  // どれか1つの保存先が消えても、残った保存先から次回また復元できるようにする。
   saveQuestionStore(cleaned);
   return cleaned;
 }
 
 function saveQuestionStore(items) {
-  try {
-    const cleaned = Array.isArray(items)
-      ? cleanQuestionStoreItems([items])
-      : [];
-    const serialized = JSON.stringify(cleaned);
-    localStorage.setItem(QUESTION_STORAGE_KEY, serialized);
-    localStorage.setItem(QUESTION_STORAGE_CACHE_KEY, serialized);
-    removeLegacyQuestionStoreKeys();
-  } catch (e) {
-    // localStorage が使えない環境では保存しない
+  const cleaned = Array.isArray(items)
+    ? cleanQuestionStoreItems([items])
+    : [];
+  const serialized = JSON.stringify(cleaned);
+
+  questionStoreMemory = cleaned;
+  questionStoreLastJson = serialized;
+
+  writeStorageValue(getBrowserStorage("localStorage"), QUESTION_STORAGE_KEY, serialized);
+  writeStorageValue(getBrowserStorage("localStorage"), QUESTION_STORAGE_CACHE_KEY, serialized);
+  writeStorageValue(getBrowserStorage("localStorage"), QUESTION_STORAGE_MIRROR_KEY, serialized);
+  writeStorageValue(getBrowserStorage("sessionStorage"), QUESTION_SESSION_STORAGE_KEY, serialized);
+  saveQuestionStoreToIndexedDb(serialized);
+}
+
+function openQuestionStoreIndexedDb() {
+  if (!window.indexedDB) return Promise.resolve(null);
+  if (questionIndexedDbPromise) return questionIndexedDbPromise;
+
+  questionIndexedDbPromise = new Promise(resolve => {
+    const request = indexedDB.open(QUESTION_IDB_NAME, QUESTION_IDB_VERSION);
+
+    request.onupgradeneeded = () => {
+      const db = request.result;
+      if (!db.objectStoreNames.contains(QUESTION_IDB_STORE)) {
+        db.createObjectStore(QUESTION_IDB_STORE);
+      }
+    };
+
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => resolve(null);
+    request.onblocked = () => resolve(null);
+  });
+
+  return questionIndexedDbPromise;
+}
+
+function readQuestionStoreFromIndexedDb() {
+  return openQuestionStoreIndexedDb().then(db => new Promise(resolve => {
+    if (!db) {
+      resolve([]);
+      return;
+    }
+
+    try {
+      const tx = db.transaction(QUESTION_IDB_STORE, "readonly");
+      const store = tx.objectStore(QUESTION_IDB_STORE);
+      const request = store.get(QUESTION_IDB_RECORD_KEY);
+      request.onsuccess = () => resolve(parseQuestionStoreValue(request.result));
+      request.onerror = () => resolve([]);
+    } catch (e) {
+      resolve([]);
+    }
+  }));
+}
+
+function saveQuestionStoreToIndexedDb(serialized) {
+  const value = serialized || questionStoreLastJson;
+
+  if (!questionIndexedDbHydrated) {
+    questionIndexedDbPendingJson = value;
+    return;
   }
+
+  openQuestionStoreIndexedDb().then(db => {
+    if (!db) return;
+
+    try {
+      const tx = db.transaction(QUESTION_IDB_STORE, "readwrite");
+      tx.objectStore(QUESTION_IDB_STORE).put(value, QUESTION_IDB_RECORD_KEY);
+    } catch (e) {
+      // IndexedDB が一時的に使えない場合でも、同期保存先には保存済み。
+    }
+  });
+}
+
+function requestPersistentBrowserStorage() {
+  if (!navigator.storage || !navigator.storage.persist) return;
+
+  navigator.storage.persisted()
+    .then(isPersisted => isPersisted || navigator.storage.persist())
+    .catch(() => false);
+}
+
+function bootstrapQuestionStorePersistence() {
+  requestPersistentBrowserStorage();
+
+  readQuestionStoreFromIndexedDb().then(indexedDbItems => {
+    const pendingItems = parseQuestionStoreValue(questionIndexedDbPendingJson);
+    questionIndexedDbHydrated = true;
+    const merged = cleanQuestionStoreItems([safeParseQuestionStore(), indexedDbItems, pendingItems]);
+    questionIndexedDbPendingJson = null;
+    saveQuestionStore(merged);
+    restoreQuestionMarks();
+    renderQuestionMemoLayer();
+  });
+}
+
+function flushQuestionStoreBeforeHide() {
+  // iOS/Safariなどでタブが急に破棄される前に、最後の状態を同期保存へもう一度書く。
+  const items = cleanQuestionStoreItems([questionStoreMemory]);
+  const serialized = JSON.stringify(items);
+  writeStorageValue(getBrowserStorage("localStorage"), QUESTION_STORAGE_KEY, serialized);
+  writeStorageValue(getBrowserStorage("localStorage"), QUESTION_STORAGE_CACHE_KEY, serialized);
+  writeStorageValue(getBrowserStorage("localStorage"), QUESTION_STORAGE_MIRROR_KEY, serialized);
+  writeStorageValue(getBrowserStorage("sessionStorage"), QUESTION_SESSION_STORAGE_KEY, serialized);
+  saveQuestionStoreToIndexedDb(serialized);
 }
 
 function removeLegacyQuestionStoreKeys() {
-  try {
-    const keysToRemove = [];
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (!key || !key.startsWith(QUESTION_STORAGE_PREFIX)) continue;
-      if (key === QUESTION_STORAGE_KEY || key === QUESTION_STORAGE_CACHE_KEY) continue;
-      keysToRemove.push(key);
-    }
-    keysToRemove.forEach(key => localStorage.removeItem(key));
-  } catch (e) {
-    // 古い保存キーを消せない環境でも、今の保存とキャッシュはそのまま使う。
-  }
+  // 以前は古い保存キーを削除していたが、保存が消えた時の復元元になるため残す。
 }
 
 function stripHtmlForKey(html) {
@@ -4610,6 +4746,7 @@ window.addEventListener("orientationchange", () => {
 });
 
 window.addEventListener("load", () => {
+  bootstrapQuestionStorePersistence();
   updateMenuPage();
   renderQuestionMemoLayer();
   requestAnimationFrame(() => {
@@ -4617,6 +4754,17 @@ window.addEventListener("load", () => {
     adjustScrollExtraHeight();
     updateSheetHiddenText();
   });
+});
+
+window.addEventListener("pagehide", flushQuestionStoreBeforeHide);
+window.addEventListener("beforeunload", flushQuestionStoreBeforeHide);
+
+window.addEventListener("storage", e => {
+  if (!e.key || !e.key.startsWith(QUESTION_STORAGE_PREFIX)) return;
+  const merged = cleanQuestionStoreItems([safeParseQuestionStore(), parseQuestionStoreValue(e.newValue)]);
+  saveQuestionStore(merged);
+  restoreQuestionMarks();
+  renderQuestionMemoLayer();
 });
 
 window.addEventListener("resize", () => {
