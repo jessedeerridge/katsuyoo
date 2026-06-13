@@ -767,6 +767,21 @@
     text-overflow: clip;
   }
 
+  .question-memo-card .memo-pair-stacked {
+    flex-direction: column;
+    gap: 0;
+    line-height: 1.12;
+  }
+
+  .question-memo-card .memo-top-line {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1px;
+    max-width: 100%;
+    min-width: 0;
+  }
+
   .question-memo-card .memo-arrow {
     flex: 0 0 auto;
     color: #d90000;
@@ -1732,6 +1747,10 @@ function extractTaraRightHtml(html) {
   return match ? match[0] : prefix;
 }
 
+function isTariMemoType(type) {
+  return type === "Vたり" || type === "たり";
+}
+
 function getMemoDisplayItem(item) {
   const type = item.type || "";
   const leftText = item.leftText || stripHtmlForKey(item.leftHtml || "");
@@ -1771,14 +1790,20 @@ function getMemoTextWidth(item, isSmall, fontBump = 0) {
 
   const ctx = getMemoTextWidth.canvas.getContext("2d");
   if (!ctx) {
-    return Math.ceil(Array.from(`${leftText}→${rightText}`).length * fontSize);
+    const leftLength = Array.from(`${leftText}→`).length;
+    const rightLength = Array.from(rightText).length;
+    const length = isTariMemoType(displayItem.type) ? Math.max(leftLength, rightLength) : leftLength + rightLength;
+    return Math.ceil(length * fontSize + horizontalPadding);
   }
 
   ctx.font = font;
   const leftWidth = ctx.measureText(leftText).width;
   const arrowWidth = ctx.measureText("→").width;
   const rightWidth = ctx.measureText(rightText).width;
-  return Math.ceil(leftWidth + arrowWidth + rightWidth + horizontalPadding);
+  const textWidth = isTariMemoType(displayItem.type)
+    ? Math.max(leftWidth + arrowWidth, rightWidth)
+    : leftWidth + arrowWidth + rightWidth;
+  return Math.ceil(textWidth + horizontalPadding);
 }
 
 function arrangeMemoRow(rowItems) {
@@ -1822,7 +1847,6 @@ function getMemoLayout(items) {
     const roomyTextWidth = getMemoTextWidth(item, isSmall, 3);
     const isRoomy = roomyTextWidth <= baseCardW;
     const width = Math.min(maxCardW, Math.max(baseCardW, textWidth));
-    const rand = seededRandom(`${item.key}:${index}`);
 
     return {
       itemIndex: index,
@@ -1830,7 +1854,8 @@ function getMemoLayout(items) {
       height: cardH,
       isWide: width > baseCardW + 1,
       isRoomy,
-      rotation: rand() < 0.5 ? -1.5 : 1.5
+      // 回転させると角が隣のカードに少し重なり、白いボックスが上に乗って見えるため固定する。
+      rotation: 0
     };
   });
 
@@ -1940,7 +1965,8 @@ function renderQuestionMemoLayer() {
     const item = items[pos.itemIndex];
     const displayItem = getMemoDisplayItem(item);
     const card = document.createElement("div");
-    card.className = `question-memo-card${pos.isRoomy ? " memo-roomy" : ""}`;
+    const isStackedMemo = isTariMemoType(displayItem.type);
+    card.className = `question-memo-card${pos.isRoomy ? " memo-roomy" : ""}${isStackedMemo ? " memo-stacked" : ""}`;
     card.style.left = `${pos.x}px`;
     card.style.top = `${pos.y}px`;
     card.style.width = `${pos.width}px`;
@@ -1951,7 +1977,15 @@ function renderQuestionMemoLayer() {
     card.setAttribute("tabindex", "0");
     card.dataset.type = item.type;
     card.dataset.key = item.key;
-    card.innerHTML = `
+    card.innerHTML = isStackedMemo ? `
+      <span class="memo-pair memo-pair-stacked">
+        <span class="memo-top-line">
+          <span class="memo-left">${displayItem.leftHtml || ""}</span>
+          <span class="memo-arrow">→</span>
+        </span>
+        <span class="memo-right">${displayItem.rightHtml || ""}</span>
+      </span>
+    ` : `
       <span class="memo-pair">
         <span class="memo-left">${displayItem.leftHtml || ""}</span>
         <span class="memo-arrow">→</span>
