@@ -95,6 +95,7 @@
     min-height: 62px;
     border: none;
     border-radius: 18px;
+    padding: 0 6px;
     font-size: 18px;
     font-weight: bold;
     color: #555;
@@ -102,6 +103,7 @@
     box-shadow: 0 5px 0 #ffd1e6, 0 8px 14px rgba(0,0,0,0.08);
     cursor: pointer;
     display: block;
+    white-space: nowrap;
     touch-action: manipulation;
     user-select: none;
     -webkit-user-select: none;
@@ -111,6 +113,18 @@
   .menu-btn:active {
     transform: translateY(4px);
     box-shadow: 0 1px 0 #ffd1e6, 0 4px 8px rgba(0,0,0,0.08);
+  }
+
+  .menu-btn.menu-btn-medium {
+    font-size: 16px;
+  }
+
+  .menu-btn.menu-btn-small {
+    font-size: 14px;
+  }
+
+  .menu-btn.menu-btn-xsmall {
+    font-size: 13px;
   }
 
   .menu-btn.basic-verb-btn {
@@ -269,6 +283,18 @@
       min-height: 56px;
       font-size: 16px;
       border-radius: 16px;
+    }
+
+    .menu-btn.menu-btn-medium {
+      font-size: 14px;
+    }
+
+    .menu-btn.menu-btn-small {
+      font-size: 12px;
+    }
+
+    .menu-btn.menu-btn-xsmall {
+      font-size: 11px;
     }
 
     .page-nav.left-nav {
@@ -1014,30 +1040,30 @@
       <button class="menu-btn" onclick="showTable('Vてください')">Vてください</button>
       <button class="menu-btn" onclick="showTable('Vています')">Vています</button>
       <button class="menu-btn" onclick="showTable('Vてきます')">Vてきます</button>
-      <button class="menu-btn" onclick="showTable('Vてもいいですか')">Vてもいいですか</button>
-      <button class="menu-btn" onclick="showTable('Vないでください')">Vないでください</button>
-      <button class="menu-btn" onclick="showTable('Vたことがあります')">Vたことがあります</button>
+      <button class="menu-btn menu-btn-small" onclick="showTable('Vてもいいですか')">Vてもいいですか</button>
+      <button class="menu-btn menu-btn-small" onclick="showTable('Vないでください')">Vないでください</button>
+      <button class="menu-btn menu-btn-xsmall" onclick="showTable('Vたことがあります')">Vたことがあります</button>
       <button class="menu-btn" onclick="showTable('Vたり')">Vたり</button>
       <button class="menu-btn" onclick="showTable('Vたら')">Vたら</button>
     </div>
 
     <div class="menu-page" data-page="2">
       <button class="menu-btn" onclick="showTable('おいしそう')">おいしそう</button>
-      <button class="menu-btn" onclick="showTable('おいしいそう 听说')">おいしいそう 听说</button>
+      <button class="menu-btn menu-btn-small" onclick="showTable('おいしいそう 听说')">おいしいそう 听说</button>
       <button class="menu-btn" onclick="showTable('-やすい')">-やすい</button>
       <button class="menu-btn" onclick="showTable('-すぎ')">-すぎ</button>
       <button class="menu-btn" onclick="showTable('Vておきます')">Vておきます</button>
-      <button class="menu-btn" onclick="showTable('Vたらいいですか')">Vたらいいですか</button>
+      <button class="menu-btn menu-btn-small" onclick="showTable('Vたらいいですか')">Vたらいいですか</button>
       <button class="menu-btn" onclick="showTable('Vてしまった')">Vてしまった</button>
-      <button class="menu-btn" onclick="showTable('Vてもらいました')">Vてもらいました</button>
-      <button class="menu-btn" onclick="showTable('Vなければならない')">Vなければならない</button>
-      <button class="menu-btn" onclick="showTable('Vてもらえませんか')">Vてもらえませんか</button>
+      <button class="menu-btn menu-btn-small" onclick="showTable('Vてもらいました')">Vてもらいました</button>
+      <button class="menu-btn menu-btn-xsmall" onclick="showTable('Vなければならない')">Vなければならない</button>
+      <button class="menu-btn menu-btn-xsmall" onclick="showTable('Vてもらえませんか')">Vてもらえませんか</button>
     </div>
 
     <div class="menu-page" data-page="3">
       <button class="menu-btn" onclick="showTable('Vられる')">Vられる</button>
       <button class="menu-btn" onclick="showTable('Vさせる')">Vさせる</button>
-      <button class="menu-btn" onclick="showTable('Vさせられる')">Vさせられる</button>
+      <button class="menu-btn menu-btn-medium" onclick="showTable('Vさせられる')">Vさせられる</button>
     </div>
   </div>
 
@@ -4001,36 +4027,36 @@ const teOkimasuData = [
 ];
 
 const teShimattaData = [
-  ["<ruby>財布<rt>さいふ</rt></ruby>を <ruby>忘<rt>わす</rt></ruby>れる", "<ruby>財布<rt>さいふ</rt></ruby>を <ruby>忘<rt>わす</rt></ruby>れてしまった"],
-  ["<ruby>電車<rt>でんしゃ</rt></ruby>に <ruby>遅<rt>おく</rt></ruby>れる", "<ruby>電車<rt>でんしゃ</rt></ruby>に <ruby>遅<rt>おく</rt></ruby>れてしまった"],
-  ["<ruby>宿題<rt>しゅくだい</rt></ruby>を <ruby>忘<rt>わす</rt></ruby>れる", "<ruby>宿題<rt>しゅくだい</rt></ruby>を <ruby>忘<rt>わす</rt></ruby>れてしまった"],
-  ["<ruby>皿<rt>さら</rt></ruby>を <ruby>割<rt>わ</rt></ruby>る", "<ruby>皿<rt>さら</rt></ruby>を <ruby>割<rt>わ</rt></ruby>ってしまった"],
-  ["<ruby>全部<rt>ぜんぶ</rt></ruby> <ruby>食<rt>た</rt></ruby>べる", "<ruby>全部<rt>ぜんぶ</rt></ruby> <ruby>食<rt>た</rt></ruby>べてしまった"],
-  ["<ruby>大切<rt>たいせつ</rt></ruby>な <ruby>書類<rt>しょるい</rt></ruby>を <ruby>捨<rt>す</rt></ruby>てる", "<ruby>大切<rt>たいせつ</rt></ruby>な <ruby>書類<rt>しょるい</rt></ruby>を <ruby>捨<rt>す</rt></ruby>ててしまった"],
-  ["<ruby>約束<rt>やくそく</rt></ruby>を <ruby>忘<rt>わす</rt></ruby>れる", "<ruby>約束<rt>やくそく</rt></ruby>を <ruby>忘<rt>わす</rt></ruby>れてしまった"],
-  ["<ruby>鍵<rt>かぎ</rt></ruby>を <ruby>無<rt>な</rt></ruby>くす", "<ruby>鍵<rt>かぎ</rt></ruby>を <ruby>無<rt>な</rt></ruby>くしてしまった"],
-  ["<ruby>道<rt>みち</rt></ruby>を <ruby>間違<rt>まちが</rt></ruby>える", "<ruby>道<rt>みち</rt></ruby>を <ruby>間違<rt>まちが</rt></ruby>えてしまった"],
-  ["<ruby>電気<rt>でんき</rt></ruby>を <ruby>消<rt>け</rt></ruby>す", "<ruby>電気<rt>でんき</rt></ruby>を <ruby>消<rt>け</rt></ruby>してしまった"],
-  ["<ruby>牛乳<rt>ぎゅうにゅう</rt></ruby>を <ruby>飲<rt>の</rt></ruby>む", "<ruby>牛乳<rt>ぎゅうにゅう</rt></ruby>を <ruby>飲<rt>の</rt></ruby>んでしまった"],
-  ["<ruby>駅<rt>えき</rt></ruby>を <ruby>通<rt>とお</rt></ruby>り<ruby>過<rt>す</rt></ruby>ぎる", "<ruby>駅<rt>えき</rt></ruby>を <ruby>通<rt>とお</rt></ruby>り<ruby>過<rt>す</rt></ruby>ぎてしまった"],
-  ["<ruby>秘密<rt>ひみつ</rt></ruby>を <ruby>話<rt>はな</rt></ruby>す", "<ruby>秘密<rt>ひみつ</rt></ruby>を <ruby>話<rt>はな</rt></ruby>してしまった"],
-  ["<ruby>写真<rt>しゃしん</rt></ruby>を <ruby>消<rt>け</rt></ruby>す", "<ruby>写真<rt>しゃしん</rt></ruby>を <ruby>消<rt>け</rt></ruby>してしまった"],
-  ["<ruby>傘<rt>かさ</rt></ruby>を <ruby>置<rt>お</rt></ruby>く", "<ruby>傘<rt>かさ</rt></ruby>を <ruby>置<rt>お</rt></ruby>いてしまった"],
-  ["<ruby>服<rt>ふく</rt></ruby>を <ruby>汚<rt>よご</rt></ruby>す", "<ruby>服<rt>ふく</rt></ruby>を <ruby>汚<rt>よご</rt></ruby>してしまった"],
-  ["<ruby>時間<rt>じかん</rt></ruby>を <ruby>間違<rt>まちが</rt></ruby>える", "<ruby>時間<rt>じかん</rt></ruby>を <ruby>間違<rt>まちが</rt></ruby>えてしまった"],
-  ["<ruby>友達<rt>ともだち</rt></ruby>の <ruby>本<rt>ほん</rt></ruby>を <ruby>破<rt>やぶ</rt></ruby>る", "<ruby>友達<rt>ともだち</rt></ruby>の <ruby>本<rt>ほん</rt></ruby>を <ruby>破<rt>やぶ</rt></ruby>ってしまった"],
-  ["<ruby>電話番号<rt>でんわばんごう</rt></ruby>を <ruby>忘<rt>わす</rt></ruby>れる", "<ruby>電話番号<rt>でんわばんごう</rt></ruby>を <ruby>忘<rt>わす</rt></ruby>れてしまった"],
-  ["<ruby>財布<rt>さいふ</rt></ruby>を <ruby>落<rt>お</rt></ruby>とす", "<ruby>財布<rt>さいふ</rt></ruby>を <ruby>落<rt>お</rt></ruby>としてしまった"],
-  ["<ruby>試験<rt>しけん</rt></ruby>に <ruby>失敗<rt>しっぱい</rt></ruby>する", "<ruby>試験<rt>しけん</rt></ruby>に <ruby>失敗<rt>しっぱい</rt></ruby>してしまった"],
-  ["<ruby>予約<rt>よやく</rt></ruby>を キャンセルする", "<ruby>予約<rt>よやく</rt></ruby>を キャンセルしてしまった"],
-  ["<ruby>大事<rt>だいじ</rt></ruby>な メールを <ruby>消<rt>け</rt></ruby>す", "<ruby>大事<rt>だいじ</rt></ruby>な メールを <ruby>消<rt>け</rt></ruby>してしまった"],
-  ["<ruby>終電<rt>しゅうでん</rt></ruby>を <ruby>逃<rt>のが</rt></ruby>す", "<ruby>終電<rt>しゅうでん</rt></ruby>を <ruby>逃<rt>のが</rt></ruby>してしまった"],
-  ["パスポートを <ruby>無<rt>な</rt></ruby>くす", "パスポートを <ruby>無<rt>な</rt></ruby>くしてしまった"],
-  ["<ruby>花瓶<rt>かびん</rt></ruby>を <ruby>壊<rt>こわ</rt></ruby>す", "<ruby>花瓶<rt>かびん</rt></ruby>を <ruby>壊<rt>こわ</rt></ruby>してしまった"],
-  ["<ruby>水<rt>みず</rt></ruby>を こぼす", "<ruby>水<rt>みず</rt></ruby>を こぼしてしまった"],
-  ["<ruby>新<rt>あたら</rt></ruby>しい <ruby>靴<rt>くつ</rt></ruby>を <ruby>汚<rt>よご</rt></ruby>す", "<ruby>新<rt>あたら</rt></ruby>しい <ruby>靴<rt>くつ</rt></ruby>を <ruby>汚<rt>よご</rt></ruby>してしまった"],
-  ["<ruby>大切<rt>たいせつ</rt></ruby>な <ruby>予定<rt>よてい</rt></ruby>を <ruby>忘<rt>わす</rt></ruby>れる", "<ruby>大切<rt>たいせつ</rt></ruby>な <ruby>予定<rt>よてい</rt></ruby>を <ruby>忘<rt>わす</rt></ruby>れてしまった"],
-  ["<ruby>宿題<rt>しゅくだい</rt></ruby>を <ruby>家<rt>いえ</rt></ruby>に <ruby>置<rt>お</rt></ruby>く", "<ruby>宿題<rt>しゅくだい</rt></ruby>を <ruby>家<rt>いえ</rt></ruby>に <ruby>置<rt>お</rt></ruby>いてしまった"]
+  ["<ruby>財布<rt>さいふ</rt></ruby>を <ruby>忘<rt>わす</rt></ruby>れる", "<ruby>財布<rt>さいふ</rt></ruby>を <ruby>忘<rt>わす</rt></ruby>れてしまいました"],
+  ["<ruby>電車<rt>でんしゃ</rt></ruby>に <ruby>遅<rt>おく</rt></ruby>れる", "<ruby>電車<rt>でんしゃ</rt></ruby>に <ruby>遅<rt>おく</rt></ruby>れてしまいました"],
+  ["<ruby>宿題<rt>しゅくだい</rt></ruby>を <ruby>忘<rt>わす</rt></ruby>れる", "<ruby>宿題<rt>しゅくだい</rt></ruby>を <ruby>忘<rt>わす</rt></ruby>れてしまいました"],
+  ["<ruby>皿<rt>さら</rt></ruby>を <ruby>割<rt>わ</rt></ruby>る", "<ruby>皿<rt>さら</rt></ruby>を <ruby>割<rt>わ</rt></ruby>ってしまいました"],
+  ["<ruby>全部<rt>ぜんぶ</rt></ruby> <ruby>食<rt>た</rt></ruby>べる", "<ruby>全部<rt>ぜんぶ</rt></ruby> <ruby>食<rt>た</rt></ruby>べてしまいました"],
+  ["<ruby>大切<rt>たいせつ</rt></ruby>な <ruby>書類<rt>しょるい</rt></ruby>を <ruby>捨<rt>す</rt></ruby>てる", "<ruby>大切<rt>たいせつ</rt></ruby>な <ruby>書類<rt>しょるい</rt></ruby>を <ruby>捨<rt>す</rt></ruby>ててしまいました"],
+  ["<ruby>約束<rt>やくそく</rt></ruby>を <ruby>忘<rt>わす</rt></ruby>れる", "<ruby>約束<rt>やくそく</rt></ruby>を <ruby>忘<rt>わす</rt></ruby>れてしまいました"],
+  ["<ruby>鍵<rt>かぎ</rt></ruby>を <ruby>無<rt>な</rt></ruby>くす", "<ruby>鍵<rt>かぎ</rt></ruby>を <ruby>無<rt>な</rt></ruby>くしてしまいました"],
+  ["<ruby>道<rt>みち</rt></ruby>を <ruby>間違<rt>まちが</rt></ruby>える", "<ruby>道<rt>みち</rt></ruby>を <ruby>間違<rt>まちが</rt></ruby>えてしまいました"],
+  ["<ruby>電気<rt>でんき</rt></ruby>を <ruby>消<rt>け</rt></ruby>す", "<ruby>電気<rt>でんき</rt></ruby>を <ruby>消<rt>け</rt></ruby>してしまいました"],
+  ["<ruby>牛乳<rt>ぎゅうにゅう</rt></ruby>を <ruby>飲<rt>の</rt></ruby>む", "<ruby>牛乳<rt>ぎゅうにゅう</rt></ruby>を <ruby>飲<rt>の</rt></ruby>んでしまいました"],
+  ["<ruby>駅<rt>えき</rt></ruby>を <ruby>通<rt>とお</rt></ruby>り<ruby>過<rt>す</rt></ruby>ぎる", "<ruby>駅<rt>えき</rt></ruby>を <ruby>通<rt>とお</rt></ruby>り<ruby>過<rt>す</rt></ruby>ぎてしまいました"],
+  ["<ruby>秘密<rt>ひみつ</rt></ruby>を <ruby>話<rt>はな</rt></ruby>す", "<ruby>秘密<rt>ひみつ</rt></ruby>を <ruby>話<rt>はな</rt></ruby>してしまいました"],
+  ["<ruby>写真<rt>しゃしん</rt></ruby>を <ruby>消<rt>け</rt></ruby>す", "<ruby>写真<rt>しゃしん</rt></ruby>を <ruby>消<rt>け</rt></ruby>してしまいました"],
+  ["<ruby>傘<rt>かさ</rt></ruby>を <ruby>置<rt>お</rt></ruby>く", "<ruby>傘<rt>かさ</rt></ruby>を <ruby>置<rt>お</rt></ruby>いてしまいました"],
+  ["<ruby>服<rt>ふく</rt></ruby>を <ruby>汚<rt>よご</rt></ruby>す", "<ruby>服<rt>ふく</rt></ruby>を <ruby>汚<rt>よご</rt></ruby>してしまいました"],
+  ["<ruby>時間<rt>じかん</rt></ruby>を <ruby>間違<rt>まちが</rt></ruby>える", "<ruby>時間<rt>じかん</rt></ruby>を <ruby>間違<rt>まちが</rt></ruby>えてしまいました"],
+  ["<ruby>友達<rt>ともだち</rt></ruby>の <ruby>本<rt>ほん</rt></ruby>を <ruby>破<rt>やぶ</rt></ruby>る", "<ruby>友達<rt>ともだち</rt></ruby>の <ruby>本<rt>ほん</rt></ruby>を <ruby>破<rt>やぶ</rt></ruby>ってしまいました"],
+  ["<ruby>電話番号<rt>でんわばんごう</rt></ruby>を <ruby>忘<rt>わす</rt></ruby>れる", "<ruby>電話番号<rt>でんわばんごう</rt></ruby>を <ruby>忘<rt>わす</rt></ruby>れてしまいました"],
+  ["<ruby>財布<rt>さいふ</rt></ruby>を <ruby>落<rt>お</rt></ruby>とす", "<ruby>財布<rt>さいふ</rt></ruby>を <ruby>落<rt>お</rt></ruby>としてしまいました"],
+  ["<ruby>試験<rt>しけん</rt></ruby>に <ruby>失敗<rt>しっぱい</rt></ruby>する", "<ruby>試験<rt>しけん</rt></ruby>に <ruby>失敗<rt>しっぱい</rt></ruby>してしまいました"],
+  ["<ruby>予約<rt>よやく</rt></ruby>を キャンセルする", "<ruby>予約<rt>よやく</rt></ruby>を キャンセルしてしまいました"],
+  ["<ruby>大事<rt>だいじ</rt></ruby>な メールを <ruby>消<rt>け</rt></ruby>す", "<ruby>大事<rt>だいじ</rt></ruby>な メールを <ruby>消<rt>け</rt></ruby>してしまいました"],
+  ["<ruby>終電<rt>しゅうでん</rt></ruby>を <ruby>逃<rt>のが</rt></ruby>す", "<ruby>終電<rt>しゅうでん</rt></ruby>を <ruby>逃<rt>のが</rt></ruby>してしまいました"],
+  ["パスポートを <ruby>無<rt>な</rt></ruby>くす", "パスポートを <ruby>無<rt>な</rt></ruby>くしてしまいました"],
+  ["<ruby>花瓶<rt>かびん</rt></ruby>を <ruby>壊<rt>こわ</rt></ruby>す", "<ruby>花瓶<rt>かびん</rt></ruby>を <ruby>壊<rt>こわ</rt></ruby>してしまいました"],
+  ["<ruby>水<rt>みず</rt></ruby>を こぼす", "<ruby>水<rt>みず</rt></ruby>を こぼしてしまいました"],
+  ["<ruby>新<rt>あたら</rt></ruby>しい <ruby>靴<rt>くつ</rt></ruby>を <ruby>汚<rt>よご</rt></ruby>す", "<ruby>新<rt>あたら</rt></ruby>しい <ruby>靴<rt>くつ</rt></ruby>を <ruby>汚<rt>よご</rt></ruby>してしまいました"],
+  ["<ruby>大切<rt>たいせつ</rt></ruby>な <ruby>予定<rt>よてい</rt></ruby>を <ruby>忘<rt>わす</rt></ruby>れる", "<ruby>大切<rt>たいせつ</rt></ruby>な <ruby>予定<rt>よてい</rt></ruby>を <ruby>忘<rt>わす</rt></ruby>れてしまいました"],
+  ["<ruby>宿題<rt>しゅくだい</rt></ruby>を <ruby>家<rt>いえ</rt></ruby>に <ruby>置<rt>お</rt></ruby>く", "<ruby>宿題<rt>しゅくだい</rt></ruby>を <ruby>家<rt>いえ</rt></ruby>に <ruby>置<rt>お</rt></ruby>いてしまいました"]
 ];
 
 const teMoraimashitaData = [
@@ -4100,36 +4126,36 @@ const teMoraemasenkaData = [
 ];
 
 const nakerebaNaranaiData = [
-  ["<ruby>行<rt>い</rt></ruby>く", "<ruby>行<rt>い</rt></ruby>かなければならない"],
-  ["<ruby>飲<rt>の</rt></ruby>む", "<ruby>飲<rt>の</rt></ruby>まなければならない"],
-  ["<ruby>読<rt>よ</rt></ruby>む", "<ruby>読<rt>よ</rt></ruby>まなければならない"],
-  ["<ruby>書<rt>か</rt></ruby>く", "<ruby>書<rt>か</rt></ruby>かなければならない"],
-  ["<ruby>話<rt>はな</rt></ruby>す", "<ruby>話<rt>はな</rt></ruby>さなければならない"],
-  ["<ruby>買<rt>か</rt></ruby>う", "<ruby>買<rt>か</rt></ruby>わなければならない"],
-  ["<ruby>会<rt>あ</rt></ruby>う", "<ruby>会<rt>あ</rt></ruby>わなければならない"],
-  ["<ruby>帰<rt>かえ</rt></ruby>る", "<ruby>帰<rt>かえ</rt></ruby>らなければならない"],
-  ["<ruby>働<rt>はたら</rt></ruby>く", "<ruby>働<rt>はたら</rt></ruby>かなければならない"],
-  ["<ruby>遊<rt>あそ</rt></ruby>ぶ", "<ruby>遊<rt>あそ</rt></ruby>ばなければならない"],
-  ["<ruby>待<rt>ま</rt></ruby>つ", "<ruby>待<rt>ま</rt></ruby>たなければならない"],
-  ["<ruby>使<rt>つか</rt></ruby>う", "<ruby>使<rt>つか</rt></ruby>わなければならない"],
-  ["<ruby>休<rt>やす</rt></ruby>む", "<ruby>休<rt>やす</rt></ruby>まなければならない"],
-  ["<ruby>歌<rt>うた</rt></ruby>う", "<ruby>歌<rt>うた</rt></ruby>わなければならない"],
-  ["<ruby>乗<rt>の</rt></ruby>る", "<ruby>乗<rt>の</rt></ruby>らなければならない"],
-  ["<ruby>泳<rt>およ</rt></ruby>ぐ", "<ruby>泳<rt>およ</rt></ruby>がなければならない"],
-  ["<ruby>走<rt>はし</rt></ruby>る", "<ruby>走<rt>はし</rt></ruby>らなければならない"],
-  ["<ruby>撮<rt>と</rt></ruby>る", "<ruby>撮<rt>と</rt></ruby>らなければならない"],
-  ["<ruby>作<rt>つく</rt></ruby>る", "<ruby>作<rt>つく</rt></ruby>らなければならない"],
-  ["<ruby>持<rt>も</rt></ruby>つ", "<ruby>持<rt>も</rt></ruby>たなければならない"],
-  ["<ruby>食<rt>た</rt></ruby>べる", "<ruby>食<rt>た</rt></ruby>べなければならない"],
-  ["<ruby>見<rt>み</rt></ruby>る", "<ruby>見<rt>み</rt></ruby>なければならない"],
-  ["<ruby>寝<rt>ね</rt></ruby>る", "<ruby>寝<rt>ね</rt></ruby>なければならない"],
-  ["<ruby>起<rt>お</rt></ruby>きる", "<ruby>起<rt>お</rt></ruby>きなければならない"],
-  ["<ruby>借<rt>か</rt></ruby>りる", "<ruby>借<rt>か</rt></ruby>りなければならない"],
-  ["<ruby>開<rt>あ</rt></ruby>ける", "<ruby>開<rt>あ</rt></ruby>けなければならない"],
-  ["<ruby>閉<rt>し</rt></ruby>める", "<ruby>閉<rt>し</rt></ruby>めなければならない"],
-  ["する", "しなければならない"],
-  ["<ruby>勉強<rt>べんきょう</rt></ruby>する", "<ruby>勉強<rt>べんきょう</rt></ruby>しなければならない"],
-  ["<ruby>来<rt>く</rt></ruby>る", "<ruby>来<rt>こ</rt></ruby>なければならない"]
+  ["<ruby>行<rt>い</rt></ruby>く", "<ruby>行<rt>い</rt></ruby>かなければなりません"],
+  ["<ruby>飲<rt>の</rt></ruby>む", "<ruby>飲<rt>の</rt></ruby>まなければなりません"],
+  ["<ruby>読<rt>よ</rt></ruby>む", "<ruby>読<rt>よ</rt></ruby>まなければなりません"],
+  ["<ruby>書<rt>か</rt></ruby>く", "<ruby>書<rt>か</rt></ruby>かなければなりません"],
+  ["<ruby>話<rt>はな</rt></ruby>す", "<ruby>話<rt>はな</rt></ruby>さなければなりません"],
+  ["<ruby>買<rt>か</rt></ruby>う", "<ruby>買<rt>か</rt></ruby>わなければなりません"],
+  ["<ruby>会<rt>あ</rt></ruby>う", "<ruby>会<rt>あ</rt></ruby>わなければなりません"],
+  ["<ruby>帰<rt>かえ</rt></ruby>る", "<ruby>帰<rt>かえ</rt></ruby>らなければなりません"],
+  ["<ruby>働<rt>はたら</rt></ruby>く", "<ruby>働<rt>はたら</rt></ruby>かなければなりません"],
+  ["<ruby>遊<rt>あそ</rt></ruby>ぶ", "<ruby>遊<rt>あそ</rt></ruby>ばなければなりません"],
+  ["<ruby>待<rt>ま</rt></ruby>つ", "<ruby>待<rt>ま</rt></ruby>たなければなりません"],
+  ["<ruby>使<rt>つか</rt></ruby>う", "<ruby>使<rt>つか</rt></ruby>わなければなりません"],
+  ["<ruby>休<rt>やす</rt></ruby>む", "<ruby>休<rt>やす</rt></ruby>まなければなりません"],
+  ["<ruby>歌<rt>うた</rt></ruby>う", "<ruby>歌<rt>うた</rt></ruby>わなければなりません"],
+  ["<ruby>乗<rt>の</rt></ruby>る", "<ruby>乗<rt>の</rt></ruby>らなければなりません"],
+  ["<ruby>泳<rt>およ</rt></ruby>ぐ", "<ruby>泳<rt>およ</rt></ruby>がなければなりません"],
+  ["<ruby>走<rt>はし</rt></ruby>る", "<ruby>走<rt>はし</rt></ruby>らなければなりません"],
+  ["<ruby>撮<rt>と</rt></ruby>る", "<ruby>撮<rt>と</rt></ruby>らなければなりません"],
+  ["<ruby>作<rt>つく</rt></ruby>る", "<ruby>作<rt>つく</rt></ruby>らなければなりません"],
+  ["<ruby>持<rt>も</rt></ruby>つ", "<ruby>持<rt>も</rt></ruby>たなければなりません"],
+  ["<ruby>食<rt>た</rt></ruby>べる", "<ruby>食<rt>た</rt></ruby>べなければなりません"],
+  ["<ruby>見<rt>み</rt></ruby>る", "<ruby>見<rt>み</rt></ruby>なければなりません"],
+  ["<ruby>寝<rt>ね</rt></ruby>る", "<ruby>寝<rt>ね</rt></ruby>なければなりません"],
+  ["<ruby>起<rt>お</rt></ruby>きる", "<ruby>起<rt>お</rt></ruby>きなければなりません"],
+  ["<ruby>借<rt>か</rt></ruby>りる", "<ruby>借<rt>か</rt></ruby>りなければなりません"],
+  ["<ruby>開<rt>あ</rt></ruby>ける", "<ruby>開<rt>あ</rt></ruby>けなければなりません"],
+  ["<ruby>閉<rt>し</rt></ruby>める", "<ruby>閉<rt>し</rt></ruby>めなければなりません"],
+  ["する", "しなければなりません"],
+  ["<ruby>勉強<rt>べんきょう</rt></ruby>する", "<ruby>勉強<rt>べんきょう</rt></ruby>しなければなりません"],
+  ["<ruby>来<rt>く</rt></ruby>る", "<ruby>来<rt>こ</rt></ruby>なければなりません"]
 ];
 
 const taraIiDesuKaData = [
