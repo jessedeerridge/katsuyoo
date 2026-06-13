@@ -2762,7 +2762,7 @@ function makeTaTable() {
 }
 
 
-function makeGroupTable(title, rightTitle, godanRows, ichidanRows, irregularRows) {
+function makeGroupTable(title, rightTitle, godanRows, ichidanRows, irregularRows, leftTitle = "辞書形") {
   let html = `
     <table>
       <tr>
@@ -3812,36 +3812,36 @@ const vYou30 = [
 ];
 
 const vPotential30 = [
-  ["<ruby>行<rt>い</rt></ruby>ける", "<ruby>行<rt>い</rt></ruby>きます"],
-  ["<ruby>飲<rt>の</rt></ruby>める", "<ruby>飲<rt>の</rt></ruby>みます"],
-  ["<ruby>聞<rt>き</rt></ruby>ける", "<ruby>聞<rt>き</rt></ruby>きます"],
-  ["<ruby>読<rt>よ</rt></ruby>める", "<ruby>読<rt>よ</rt></ruby>みます"],
-  ["<ruby>書<rt>か</rt></ruby>ける", "<ruby>書<rt>か</rt></ruby>きます"],
-  ["<ruby>話<rt>はな</rt></ruby>せる", "<ruby>話<rt>はな</rt></ruby>します"],
-  ["<ruby>買<rt>か</rt></ruby>える", "<ruby>買<rt>か</rt></ruby>います"],
-  ["<ruby>会<rt>あ</rt></ruby>える", "<ruby>会<rt>あ</rt></ruby>います"],
-  ["<ruby>帰<rt>かえ</rt></ruby>れる", "<ruby>帰<rt>かえ</rt></ruby>ります"],
-  ["<ruby>働<rt>はたら</rt></ruby>ける", "<ruby>働<rt>はたら</rt></ruby>きます"],
-  ["<ruby>遊<rt>あそ</rt></ruby>べる", "<ruby>遊<rt>あそ</rt></ruby>びます"],
-  ["<ruby>待<rt>ま</rt></ruby>てる", "<ruby>待<rt>ま</rt></ruby>ちます"],
-  ["<ruby>使<rt>つか</rt></ruby>える", "<ruby>使<rt>つか</rt></ruby>います"],
-  ["<ruby>休<rt>やす</rt></ruby>める", "<ruby>休<rt>やす</rt></ruby>みます"],
-  ["<ruby>歌<rt>うた</rt></ruby>える", "<ruby>歌<rt>うた</rt></ruby>います"],
-  ["<ruby>乗<rt>の</rt></ruby>れる", "<ruby>乗<rt>の</rt></ruby>ります"],
-  ["<ruby>泳<rt>およ</rt></ruby>げる", "<ruby>泳<rt>およ</rt></ruby>ぎます"],
-  ["<ruby>走<rt>はし</rt></ruby>れる", "<ruby>走<rt>はし</rt></ruby>ります"],
-  ["<ruby>撮<rt>と</rt></ruby>れる", "<ruby>撮<rt>と</rt></ruby>ります"],
-  ["<ruby>作<rt>つく</rt></ruby>れる", "<ruby>作<rt>つく</rt></ruby>ります"],
-  ["<ruby>食<rt>た</rt></ruby>べられる", "<ruby>食<rt>た</rt></ruby>べます"],
-  ["<ruby>見<rt>み</rt></ruby>られる", "<ruby>見<rt>み</rt></ruby>ます"],
-  ["<ruby>寝<rt>ね</rt></ruby>られる", "<ruby>寝<rt>ね</rt></ruby>ます"],
-  ["<ruby>起<rt>お</rt></ruby>きられる", "<ruby>起<rt>お</rt></ruby>きます"],
-  ["<ruby>借<rt>か</rt></ruby>りられる", "<ruby>借<rt>か</rt></ruby>ります"],
-  ["<ruby>開<rt>あ</rt></ruby>けられる", "<ruby>開<rt>あ</rt></ruby>けます"],
-  ["<ruby>閉<rt>し</rt></ruby>められる", "<ruby>閉<rt>し</rt></ruby>めます"],
-  ["できる", "します"],
-  ["<ruby>勉強<rt>べんきょう</rt></ruby>できる", "<ruby>勉強<rt>べんきょう</rt></ruby>します"],
-  ["<ruby>来<rt>こ</rt></ruby>られる", "<ruby>来<rt>き</rt></ruby>ます"]
+  ["<ruby>行<rt>い</rt></ruby>ける", "<ruby>行<rt>い</rt></ruby>けます"],
+  ["<ruby>飲<rt>の</rt></ruby>める", "<ruby>飲<rt>の</rt></ruby>めます"],
+  ["<ruby>聞<rt>き</rt></ruby>ける", "<ruby>聞<rt>き</rt></ruby>けます"],
+  ["<ruby>読<rt>よ</rt></ruby>める", "<ruby>読<rt>よ</rt></ruby>めます"],
+  ["<ruby>書<rt>か</rt></ruby>ける", "<ruby>書<rt>か</rt></ruby>けます"],
+  ["<ruby>話<rt>はな</rt></ruby>せる", "<ruby>話<rt>はな</rt></ruby>せます"],
+  ["<ruby>買<rt>か</rt></ruby>える", "<ruby>買<rt>か</rt></ruby>えます"],
+  ["<ruby>会<rt>あ</rt></ruby>える", "<ruby>会<rt>あ</rt></ruby>えます"],
+  ["<ruby>帰<rt>かえ</rt></ruby>れる", "<ruby>帰<rt>かえ</rt></ruby>れます"],
+  ["<ruby>働<rt>はたら</rt></ruby>ける", "<ruby>働<rt>はたら</rt></ruby>けます"],
+  ["<ruby>遊<rt>あそ</rt></ruby>べる", "<ruby>遊<rt>あそ</rt></ruby>べます"],
+  ["<ruby>待<rt>ま</rt></ruby>てる", "<ruby>待<rt>ま</rt></ruby>てます"],
+  ["<ruby>使<rt>つか</rt></ruby>える", "<ruby>使<rt>つか</rt></ruby>えます"],
+  ["<ruby>休<rt>やす</rt></ruby>める", "<ruby>休<rt>やす</rt></ruby>めます"],
+  ["<ruby>歌<rt>うた</rt></ruby>える", "<ruby>歌<rt>うた</rt></ruby>えます"],
+  ["<ruby>乗<rt>の</rt></ruby>れる", "<ruby>乗<rt>の</rt></ruby>れます"],
+  ["<ruby>泳<rt>およ</rt></ruby>げる", "<ruby>泳<rt>およ</rt></ruby>げます"],
+  ["<ruby>走<rt>はし</rt></ruby>れる", "<ruby>走<rt>はし</rt></ruby>れます"],
+  ["<ruby>撮<rt>と</rt></ruby>れる", "<ruby>撮<rt>と</rt></ruby>れます"],
+  ["<ruby>作<rt>つく</rt></ruby>れる", "<ruby>作<rt>つく</rt></ruby>れます"],
+  ["<ruby>食<rt>た</rt></ruby>べられる", "<ruby>食<rt>た</rt></ruby>べられます"],
+  ["<ruby>見<rt>み</rt></ruby>られる", "<ruby>見<rt>み</rt></ruby>られます"],
+  ["<ruby>寝<rt>ね</rt></ruby>られる", "<ruby>寝<rt>ね</rt></ruby>られます"],
+  ["<ruby>起<rt>お</rt></ruby>きられる", "<ruby>起<rt>お</rt></ruby>きられます"],
+  ["<ruby>借<rt>か</rt></ruby>りられる", "<ruby>借<rt>か</rt></ruby>りられます"],
+  ["<ruby>開<rt>あ</rt></ruby>けられる", "<ruby>開<rt>あ</rt></ruby>けられます"],
+  ["<ruby>閉<rt>し</rt></ruby>められる", "<ruby>閉<rt>し</rt></ruby>められます"],
+  ["できる", "できます"],
+  ["<ruby>勉強<rt>べんきょう</rt></ruby>できる", "<ruby>勉強<rt>べんきょう</rt></ruby>できます"],
+  ["<ruby>来<rt>こ</rt></ruby>られる", "<ruby>来<rt>こ</rt></ruby>られます"]
 ];
 
 function makeTaiTable() { makeFlat30Table("Vたいです", "Vたいです（想）", vTai30, "辞書形"); }
@@ -3856,7 +3856,7 @@ function makeTaraTable() { makeTaraPartialColorTable("Vたら", "Vたら（如�
 function makeTaKotoArimasuTable() { makeFlat30Table("Vたことがあります", "Vたことがあります（有过）", vTaKotoArimasu30, "ヒント"); }
 function makeTekimasuTable() { makeFlat30Table("Vてきます", "Vてきます（回来）", vTekimasu30, "ヒント"); }
 function makeYouTable() { makeFlatTaggedTable("Vよう", "Vよう", vYou30); }
-function makePotentialTable() { makeFlatTaggedTable("可能形", "ます", vPotential30, "可能形"); }
+function makePotentialTable() { makeFlatTaggedTable("可能形", "可能形ます", vPotential30, "可能形"); }
 function makeNakattaTable() { makeAdjectiveKunakattaTable(); }
 
 
