@@ -1534,7 +1534,7 @@ const tokiVerbData = [
 const QUESTION_STORAGE_KEY = "katsuyouQuestionMarks_v1";
 const QUESTION_STORAGE_CACHE_KEY = "katsuyouQuestionMarks_cache_v1";
 const QUESTION_STORAGE_PREFIX = "katsuyouQuestionMarks";
-const QUESTION_MEMO_LIMIT = 12;
+const QUESTION_MEMO_DISPLAY_LIMIT = 12;
 const QUESTION_MEMO_ZONE_LIMIT = 6;
 const QUESTION_ROW_KEY_PREFIX = "row";
 let currentTableType = "";
@@ -1609,7 +1609,6 @@ function cleanQuestionStoreItems(rawLists) {
   rawLists.forEach(list => {
     if (!Array.isArray(list)) return;
     list.forEach(item => {
-      if (cleaned.length >= QUESTION_MEMO_LIMIT) return;
       if (!item || typeof item !== "object") return;
       const normalized = normalizeQuestionItem(item);
       if (!isValidQuestionItem(normalized)) return;
@@ -1637,13 +1636,29 @@ function safeParseQuestionStore() {
 function saveQuestionStore(items) {
   try {
     const cleaned = Array.isArray(items)
-      ? cleanQuestionStoreItems([items]).slice(0, QUESTION_MEMO_LIMIT)
+      ? cleanQuestionStoreItems([items])
       : [];
     const serialized = JSON.stringify(cleaned);
     localStorage.setItem(QUESTION_STORAGE_KEY, serialized);
     localStorage.setItem(QUESTION_STORAGE_CACHE_KEY, serialized);
+    removeLegacyQuestionStoreKeys();
   } catch (e) {
     // localStorage が使えない環境では保存しない
+  }
+}
+
+function removeLegacyQuestionStoreKeys() {
+  try {
+    const keysToRemove = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (!key || !key.startsWith(QUESTION_STORAGE_PREFIX)) continue;
+      if (key === QUESTION_STORAGE_KEY || key === QUESTION_STORAGE_CACHE_KEY) continue;
+      keysToRemove.push(key);
+    }
+    keysToRemove.forEach(key => localStorage.removeItem(key));
+  } catch (e) {
+    // 古い保存キーを消せない環境でも、今の保存とキャッシュはそのまま使う。
   }
 }
 
@@ -1872,7 +1887,7 @@ function arrangeMemoRow(rowItems) {
 function getMemoLayout(items) {
   items = Array.isArray(items) ? items.filter(isValidQuestionItem) : [];
   if (!items.length) return [];
-  if (items.length > QUESTION_MEMO_LIMIT) return null;
+  if (items.length > QUESTION_MEMO_DISPLAY_LIMIT) return null;
 
   const vw = window.innerWidth;
   const vh = window.innerHeight;
@@ -1964,33 +1979,20 @@ function getMemoLayout(items) {
   return positions;
 }
 
-function canPlaceQuestionMemo(items) {
-  items = Array.isArray(items) ? items.filter(isValidQuestionItem) : [];
-  if (!items.length) return true;
-
-  const menu = document.getElementById("menuScreen");
-  const oldDisplay = menu ? menu.style.display : "";
-  const oldMode = document.body.classList.contains("menu-mode");
-  if (menu) menu.style.display = "block";
-  document.body.classList.add("menu-mode");
-  const positions = getMemoLayout(items);
-  if (menu) menu.style.display = oldDisplay;
-  if (!oldMode) document.body.classList.remove("menu-mode");
-  return Array.isArray(positions);
-}
-
-function showEmptyMemoToast() {
-  const old = document.querySelector(".memo-empty-toast");
-  if (old) old.remove();
-  const toast = document.createElement("div");
-  toast.className = "memo-empty-toast";
-  toast.textContent = "空きがありません";
-  document.body.appendChild(toast);
-  setTimeout(() => toast.remove(), 1300);
-}
-
 function escapeForAttr(value) {
   return String(value || "").replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function getRandomQuestionMemoItems(items, limit) {
+  const list = Array.isArray(items) ? items.slice() : [];
+  if (list.length <= limit) return list;
+
+  for (let i = list.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [list[i], list[j]] = [list[j], list[i]];
+  }
+
+  return list.slice(0, limit);
 }
 
 function renderQuestionMemoLayer() {
@@ -1998,7 +2000,7 @@ function renderQuestionMemoLayer() {
   const menu = document.getElementById("menuScreen");
   if (!layer || !menu || menu.style.display === "none") return;
 
-  const items = safeParseQuestionStore();
+  const items = getRandomQuestionMemoItems(safeParseQuestionStore(), QUESTION_MEMO_DISPLAY_LIMIT);
   layer.innerHTML = "";
   if (!items.length) return;
 
@@ -3604,8 +3606,6 @@ function toggleQuestionMark(button) {
     return;
   }
 
-  // 見えない壊れた保存データを先に除外する。
-  // これで、実際は0個なのに items.length > 0 になって空き判定へ進む問題を防ぐ。
   const items = safeParseQuestionStore();
   const index = items.findIndex(item => questionItemMatchesInfo(item, info));
 
@@ -3613,14 +3613,6 @@ function toggleQuestionMark(button) {
     items.splice(index, 1);
     button.classList.remove("active");
   } else {
-    const nextItems = items.concat([normalizeQuestionItem(info)]);
-
-    if (nextItems.length > QUESTION_MEMO_LIMIT || !canPlaceQuestionMemo(nextItems)) {
-      showEmptyMemoToast();
-      button.classList.remove("active");
-      return;
-    }
-
     items.push(normalizeQuestionItem(info));
     button.classList.add("active");
   }
