@@ -1546,9 +1546,24 @@ function isValidQuestionItem(item) {
   return !!(leftText && rightText);
 }
 
+function sanitizeQuestionMemoHtml(html) {
+  const tmp = document.createElement("div");
+  tmp.innerHTML = html || "";
+
+  // 表の赤シート用カバーや色分け用の class/style を？記録へ持ち込まない。
+  // これらが保存されると、記録ボックス内の文字の上に白・色付きの四角が乗って見える。
+  tmp.querySelectorAll(".answer-mask-cover").forEach(el => el.remove());
+  tmp.querySelectorAll("[style], [class]").forEach(el => {
+    el.removeAttribute("style");
+    el.removeAttribute("class");
+  });
+
+  return tmp.innerHTML.trim();
+}
+
 function normalizeQuestionItem(item) {
-  const leftHtml = item.leftHtml || item.leftText || "";
-  const rightHtml = item.rightHtml || item.rightText || "";
+  const leftHtml = sanitizeQuestionMemoHtml(item.leftHtml || item.leftText || "");
+  const rightHtml = sanitizeQuestionMemoHtml(item.rightHtml || item.rightText || "");
   const leftText = item.leftText || stripHtmlForKey(leftHtml);
   const rightText = item.rightText || stripHtmlForKey(rightHtml);
   const type = item.type || "";
@@ -1578,7 +1593,7 @@ function safeParseQuestionStore() {
 
     // 以前のバージョンで壊れたデータ・空データ・上限超過データが残っていると、
     // 見た目は0個なのに「空きがありません」になるので、ここで掃除する。
-    if (cleaned.length !== parsed.length) {
+    if (cleaned.length !== parsed.length || JSON.stringify(cleaned) !== JSON.stringify(parsed)) {
       saveQuestionStore(cleaned);
     }
 
@@ -1624,8 +1639,8 @@ function getQuestionInfo(button) {
 
   const leftEl = cells[0].querySelector(".word-text") || cells[0];
   const rightEl = cells[1].querySelector(".answer-text") || cells[1];
-  const leftHtml = (leftEl.innerHTML || "").trim();
-  const rightHtml = (rightEl.innerHTML || "").trim();
+  const leftHtml = sanitizeQuestionMemoHtml((leftEl.innerHTML || "").trim());
+  const rightHtml = sanitizeQuestionMemoHtml((rightEl.innerHTML || "").trim());
   const leftText = stripHtmlForKey(leftHtml);
   const rightText = stripHtmlForKey(rightHtml);
   if (!leftText || !rightText) return null;
