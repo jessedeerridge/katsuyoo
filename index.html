@@ -444,26 +444,18 @@
     position: relative;
   }
 
-  .question-svg {
+  .question-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     width: 24px;
     height: 24px;
-    display: block;
-    overflow: visible;
-    transform: translateY(1px);
-  }
-
-  .question-glyph {
-    fill: none;
-    stroke: #dcdcdc;
-    stroke-width: 1;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    stroke-dasharray: 2.4 2.4;
-    paint-order: stroke;
-
-    font-family: "Arial Rounded MT Bold", "Hiragino Maru Gothic ProN", "Yu Gothic", sans-serif;
-    font-size: 25px;
-    font-weight: 800;
+    color: #cfcfcf;
+    font-family: "Kosugi Maru", "Hiragino Maru Gothic ProN", "Yu Gothic", sans-serif;
+    font-size: 23px;
+    font-weight: 900;
+    line-height: 1;
+    transform: translateY(-1px);
   }
 .question-box:active {
     transform: scale(0.92);
@@ -617,9 +609,13 @@
   }
 
   /* ？を押したら赤い？ */
-  .question-box.active .question-glyph {
-    fill: #d90000 !important;
-    stroke: none !important;
+  .question-box.active {
+    border-color: rgba(217, 0, 0, 0.38) !important;
+    box-shadow: 0 2px 8px rgba(217, 0, 0, 0.12);
+  }
+
+  .question-box.active .question-mark {
+    color: #d90000 !important;
   }
 
 
@@ -1532,8 +1528,9 @@ function normalizeQuestionItem(item) {
   const leftText = item.leftText || stripHtmlForKey(leftHtml);
   const rightText = item.rightText || stripHtmlForKey(rightHtml);
   const type = item.type || "";
-  const key = item.key || `${type}::${leftText}::${rightText}`;
-  return { key, type, leftHtml, rightHtml, leftText, rightText };
+  const legacyKey = item.legacyKey || `${type}::${leftText}::${rightText}`;
+  const key = item.key || legacyKey;
+  return { key, legacyKey, type, leftHtml, rightHtml, leftText, rightText };
 }
 
 function safeParseQuestionStore() {
@@ -1599,18 +1596,50 @@ function getQuestionInfo(button) {
   if (!leftText || !rightText) return null;
 
   const type = currentTableType || document.getElementById("tableTitle")?.textContent || "";
-  const key = `${type}::${leftText}::${rightText}`;
-  return { key, type, leftHtml, rightHtml, leftText, rightText };
+  const questionRows = Array.from(document.querySelectorAll("#tableArea tr"))
+    .filter(tableRow => tableRow.querySelector(".question-box"));
+  const rowIndex = Math.max(0, questionRows.indexOf(row));
+  const legacyKey = `${type}::${leftText}::${rightText}`;
+  const key = `${type}::row-${String(rowIndex + 1).padStart(3, "0")}`;
+  return { key, legacyKey, type, leftHtml, rightHtml, leftText, rightText };
+}
+
+function questionItemMatchesInfo(item, info) {
+  if (!item || !info) return false;
+  const normalized = normalizeQuestionItem(item);
+  return normalized.key === info.key
+    || normalized.legacyKey === info.key
+    || normalized.key === info.legacyKey
+    || normalized.legacyKey === info.legacyKey;
 }
 
 function restoreQuestionMarks() {
-  const savedKeys = new Set(safeParseQuestionStore().map(item => item.key));
+  const items = safeParseQuestionStore();
+  let storeChanged = false;
+
   document.querySelectorAll(".question-box").forEach(button => {
     const info = getQuestionInfo(button);
     if (!info) return;
+
     button.dataset.questionKey = info.key;
-    button.classList.toggle("active", savedKeys.has(info.key));
+    button.dataset.questionLegacyKey = info.legacyKey;
+
+    const savedIndex = items.findIndex(item => questionItemMatchesInfo(item, info));
+    const isActive = savedIndex >= 0;
+    button.classList.toggle("active", isActive);
+
+    if (isActive) {
+      const normalized = normalizeQuestionItem(items[savedIndex]);
+      if (normalized.key !== info.key || normalized.legacyKey !== info.legacyKey) {
+        items[savedIndex] = normalizeQuestionItem(info);
+        storeChanged = true;
+      }
+    }
   });
+
+  if (storeChanged) {
+    saveQuestionStore(items);
+  }
 }
 
 function memoRectsOverlap(a, b, gap = 8) {
@@ -2027,7 +2056,7 @@ function scrollToQuestionKey(key) {
   const buttons = Array.from(document.querySelectorAll(".question-box"));
   const target = buttons.find(button => {
     const info = getQuestionInfo(button);
-    return info && info.key === key;
+    return info && (info.key === key || info.legacyKey === key);
   });
   if (!target) return;
   target.classList.add("active");
@@ -2056,9 +2085,7 @@ function backMenu() {
 function makeQuestionButton() {
   return `
     <button class="question-box" type="button" onclick="toggleQuestionMark(this)" aria-label="チェック">
-      <svg class="question-svg" viewBox="0 0 30 30" aria-hidden="true">
-        <text class="question-glyph" x="15" y="25" text-anchor="middle">?</text>
-      </svg>
+      <span class="question-mark" aria-hidden="true">？</span>
     </button>
   `;
 }
@@ -3468,7 +3495,7 @@ function toggleQuestionMark(button) {
   // 見えない壊れた保存データを先に除外する。
   // これで、実際は0個なのに items.length > 0 になって空き判定へ進む問題を防ぐ。
   const items = safeParseQuestionStore();
-  const index = items.findIndex(item => item.key === info.key);
+  const index = items.findIndex(item => questionItemMatchesInfo(item, info));
 
   if (index >= 0) {
     items.splice(index, 1);
