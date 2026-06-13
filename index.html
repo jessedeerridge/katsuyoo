@@ -1532,6 +1532,8 @@ const tokiVerbData = [
 
 
 const QUESTION_STORAGE_KEY = "katsuyouQuestionMarks_v1";
+const QUESTION_STORAGE_CACHE_KEY = "katsuyouQuestionMarks_cache_v1";
+const QUESTION_STORAGE_PREFIX = "katsuyouQuestionMarks";
 const QUESTION_MEMO_LIMIT = 12;
 const QUESTION_MEMO_ZONE_LIMIT = 6;
 const QUESTION_ROW_KEY_PREFIX = "row";
@@ -1572,43 +1574,74 @@ function normalizeQuestionItem(item) {
   return { key, legacyKey, type, leftHtml, rightHtml, leftText, rightText };
 }
 
-function safeParseQuestionStore() {
+function parseQuestionStoreValue(raw) {
   try {
-    const raw = localStorage.getItem(QUESTION_STORAGE_KEY);
     const parsed = raw ? JSON.parse(raw) : [];
-    if (!Array.isArray(parsed)) return [];
-
-    const cleaned = [];
-    const usedKeys = new Set();
-
-    parsed.forEach(item => {
-      if (cleaned.length >= QUESTION_MEMO_LIMIT) return;
-      if (!item || typeof item !== "object") return;
-      const normalized = normalizeQuestionItem(item);
-      if (!isValidQuestionItem(normalized)) return;
-      if (usedKeys.has(normalized.key)) return;
-      usedKeys.add(normalized.key);
-      cleaned.push(normalized);
-    });
-
-    // 以前のバージョンで壊れたデータ・空データ・上限超過データが残っていると、
-    // 見た目は0個なのに「空きがありません」になるので、ここで掃除する。
-    if (cleaned.length !== parsed.length || JSON.stringify(cleaned) !== JSON.stringify(parsed)) {
-      saveQuestionStore(cleaned);
-    }
-
-    return cleaned;
+    return Array.isArray(parsed) ? parsed : [];
   } catch (e) {
     return [];
   }
 }
 
+function getQuestionStoreRawLists() {
+  const lists = [];
+  try {
+    lists.push(parseQuestionStoreValue(localStorage.getItem(QUESTION_STORAGE_KEY)));
+    lists.push(parseQuestionStoreValue(localStorage.getItem(QUESTION_STORAGE_CACHE_KEY)));
+
+    // コードを書き替えた時に保存キーの名前が変わっても、同じ接頭辞の古い？記録を拾って復元する。
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (!key || !key.startsWith(QUESTION_STORAGE_PREFIX)) continue;
+      if (key === QUESTION_STORAGE_KEY || key === QUESTION_STORAGE_CACHE_KEY) continue;
+      lists.push(parseQuestionStoreValue(localStorage.getItem(key)));
+    }
+  } catch (e) {
+    return lists;
+  }
+  return lists;
+}
+
+function cleanQuestionStoreItems(rawLists) {
+  const cleaned = [];
+  const usedKeys = new Set();
+
+  rawLists.forEach(list => {
+    if (!Array.isArray(list)) return;
+    list.forEach(item => {
+      if (cleaned.length >= QUESTION_MEMO_LIMIT) return;
+      if (!item || typeof item !== "object") return;
+      const normalized = normalizeQuestionItem(item);
+      if (!isValidQuestionItem(normalized)) return;
+
+      // 表の行番号キーと、昔の「文字内容キー」のどちらかが同じなら同じ？記録として扱う。
+      const aliases = [normalized.key, normalized.legacyKey].filter(Boolean);
+      if (aliases.some(alias => usedKeys.has(alias))) return;
+      aliases.forEach(alias => usedKeys.add(alias));
+      cleaned.push(normalized);
+    });
+  });
+
+  return cleaned;
+}
+
+function safeParseQuestionStore() {
+  const cleaned = cleanQuestionStoreItems(getQuestionStoreRawLists());
+
+  // 以前のバージョンで保存キーが変わったり、メイン保存欄だけ消えたりしても、
+  // キャッシュ側から毎回復元できるように両方へ同じ内容を書いておく。
+  saveQuestionStore(cleaned);
+  return cleaned;
+}
+
 function saveQuestionStore(items) {
   try {
     const cleaned = Array.isArray(items)
-      ? items.map(normalizeQuestionItem).filter(isValidQuestionItem).slice(0, QUESTION_MEMO_LIMIT)
+      ? cleanQuestionStoreItems([items]).slice(0, QUESTION_MEMO_LIMIT)
       : [];
-    localStorage.setItem(QUESTION_STORAGE_KEY, JSON.stringify(cleaned));
+    const serialized = JSON.stringify(cleaned);
+    localStorage.setItem(QUESTION_STORAGE_KEY, serialized);
+    localStorage.setItem(QUESTION_STORAGE_CACHE_KEY, serialized);
   } catch (e) {
     // localStorage が使えない環境では保存しない
   }
