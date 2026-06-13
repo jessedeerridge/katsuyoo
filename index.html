@@ -333,13 +333,40 @@
     box-shadow: 0 1px 0 #e15d9d;
   }
 
+  .random-order-btn {
+    width: 48px;
+    height: 48px;
+    flex: 0 0 48px;
+    border: none;
+    border-radius: 50%;
+    background: #111;
+    color: white;
+    font-size: 13px;
+    font-weight: 900;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 5px 14px rgba(0,0,0,0.24);
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .random-order-btn:active {
+    transform: scale(0.92);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.20);
+  }
+
   .table-title {
     flex: 1;
     text-align: center;
     font-size: 21px;
     font-weight: bold;
     color: #ff6fae;
-    padding-right: 58px;
+    padding-right: 0;
   }
 
   .table-wrap {
@@ -1017,6 +1044,7 @@
   <div class="top-bar">
     <button class="back-btn" onclick="backMenu()">← 戻る</button>
     <div class="table-title" id="tableTitle">Vます</div>
+    <button class="random-order-btn" id="randomOrderBtn" type="button" onclick="toggleRandomOrder()" aria-label="表をランダムに並べ替える">随机</button>
   </div>
 
   <div class="table-wrap">
@@ -1696,7 +1724,8 @@ function getQuestionInfo(button) {
   const type = currentTableType || document.getElementById("tableTitle")?.textContent || "";
   const rowIndex = getQuestionRowIndex(row);
   const legacyKey = `${type}::${leftText}::${rightText}`;
-  const key = rowIndex >= 0 ? makeStableQuestionKey(type, rowIndex) : legacyKey;
+  const stableKey = rowIndex >= 0 ? makeStableQuestionKey(type, rowIndex) : legacyKey;
+  const key = tableRandomized && button.dataset.questionKey ? button.dataset.questionKey : stableKey;
   return { key, legacyKey, type, rowIndex, leftHtml, rightHtml, leftText, rightText };
 }
 
@@ -2073,6 +2102,80 @@ let maskAnimationId = null;
 let maskListenersActive = false;
 let tableVisible = false;
 let masuSwapped = false;
+let tableRandomized = false;
+let sequentialTableHtml = "";
+
+function updateRandomOrderButton() {
+  const button = document.getElementById("randomOrderBtn");
+  if (!button) return;
+  button.textContent = tableRandomized ? "顺次" : "随机";
+  button.setAttribute("aria-label", tableRandomized ? "表を元の順番に戻す" : "表をランダムに並べ替える");
+}
+
+function rememberSequentialTable() {
+  const area = document.getElementById("tableArea");
+  sequentialTableHtml = area ? area.innerHTML : "";
+}
+
+function afterTableOrderChanged() {
+  requestAnimationFrame(() => {
+    restoreQuestionMarks();
+    fitTableTextOneLine();
+    adjustScrollExtraHeight();
+    updateSheetHiddenText();
+  });
+}
+
+function shuffleArray(items) {
+  const shuffled = items.slice();
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
+function randomizeCurrentTable() {
+  const table = document.querySelector("#tableArea table");
+  if (!table) return false;
+
+  restoreQuestionMarks();
+  const body = table.tBodies[0] || table;
+  const rows = Array.from(body.querySelectorAll(":scope > tr"));
+  const headerRows = rows.filter(row => row.querySelector("th"));
+  const dataRows = rows.filter(row => !row.querySelector("th") && !row.classList.contains("group-row"));
+  if (dataRows.length < 2) return false;
+
+  rows.forEach(row => row.remove());
+  headerRows.forEach(row => body.appendChild(row));
+
+  shuffleArray(dataRows).forEach(row => {
+    row.removeAttribute("class");
+    row.querySelectorAll(".phrase-color").forEach(el => {
+      el.removeAttribute("class");
+    });
+    body.appendChild(row);
+  });
+
+  return true;
+}
+
+function toggleRandomOrder() {
+  const area = document.getElementById("tableArea");
+  if (!area) return;
+
+  if (tableRandomized) {
+    area.innerHTML = sequentialTableHtml;
+    tableRandomized = false;
+  } else {
+    rememberSequentialTable();
+    if (!randomizeCurrentTable()) return;
+    tableRandomized = true;
+  }
+
+  updateRandomOrderButton();
+  afterTableOrderChanged();
+}
 
 function showTable(type, focusKey = "") {
   document.body.classList.remove("menu-mode", "sheet-high", "table-start-lowered");
@@ -2083,6 +2186,9 @@ function showTable(type, focusKey = "") {
   document.getElementById("tableScreen").style.display = "block";
   document.getElementById("tableTitle").textContent = type;
   currentTableType = type;
+  tableRandomized = false;
+  sequentialTableHtml = "";
+  updateRandomOrderButton();
 
   tableVisible = true;
 
@@ -2145,6 +2251,7 @@ function showTable(type, focusKey = "") {
     showPlaceholder(type);
   }
 
+  rememberSequentialTable();
   window.scrollTo(0, 0);
 
   requestAnimationFrame(() => {
