@@ -677,7 +677,7 @@
     min-width: 0;
     max-width: calc(100vw - 16px);
     min-height: 44px;
-    padding: 7px 8px 6px;
+    padding: 7px 0 6px;
     border-radius: 12px;
     background: rgba(255, 255, 255, 0.86);
     border: 1.5px dashed rgba(255, 111, 174, 0.62);
@@ -748,7 +748,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 3px;
+    gap: 1px;
     width: max-content;
     max-width: 100%;
     min-width: 0;
@@ -765,6 +765,21 @@
     max-width: none;
     overflow: visible;
     text-overflow: clip;
+  }
+
+  .question-memo-card .memo-pair-stacked {
+    flex-direction: column;
+    gap: 0;
+    line-height: 1.12;
+  }
+
+  .question-memo-card .memo-top-line {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1px;
+    max-width: 100%;
+    min-width: 0;
   }
 
   .question-memo-card .memo-arrow {
@@ -792,7 +807,7 @@
   @media (max-width: 420px) {
     .question-memo-card {
       min-height: 34px;
-      padding: 5px 6px 4px;
+      padding: 5px 0 4px;
       border-radius: 10px;
       font-size: 8px;
     }
@@ -1531,9 +1546,24 @@ function isValidQuestionItem(item) {
   return !!(leftText && rightText);
 }
 
+function sanitizeQuestionMemoHtml(html) {
+  const tmp = document.createElement("div");
+  tmp.innerHTML = html || "";
+
+  // 表の赤シート用カバーや色分け用の class/style を？記録へ持ち込まない。
+  // これらが保存されると、記録ボックス内の文字の上に白・色付きの四角が乗って見える。
+  tmp.querySelectorAll(".answer-mask-cover").forEach(el => el.remove());
+  tmp.querySelectorAll("[style], [class]").forEach(el => {
+    el.removeAttribute("style");
+    el.removeAttribute("class");
+  });
+
+  return tmp.innerHTML.trim();
+}
+
 function normalizeQuestionItem(item) {
-  const leftHtml = item.leftHtml || item.leftText || "";
-  const rightHtml = item.rightHtml || item.rightText || "";
+  const leftHtml = sanitizeQuestionMemoHtml(item.leftHtml || item.leftText || "");
+  const rightHtml = sanitizeQuestionMemoHtml(item.rightHtml || item.rightText || "");
   const leftText = item.leftText || stripHtmlForKey(leftHtml);
   const rightText = item.rightText || stripHtmlForKey(rightHtml);
   const type = item.type || "";
@@ -1563,7 +1593,7 @@ function safeParseQuestionStore() {
 
     // 以前のバージョンで壊れたデータ・空データ・上限超過データが残っていると、
     // 見た目は0個なのに「空きがありません」になるので、ここで掃除する。
-    if (cleaned.length !== parsed.length) {
+    if (cleaned.length !== parsed.length || JSON.stringify(cleaned) !== JSON.stringify(parsed)) {
       saveQuestionStore(cleaned);
     }
 
@@ -1609,8 +1639,8 @@ function getQuestionInfo(button) {
 
   const leftEl = cells[0].querySelector(".word-text") || cells[0];
   const rightEl = cells[1].querySelector(".answer-text") || cells[1];
-  const leftHtml = (leftEl.innerHTML || "").trim();
-  const rightHtml = (rightEl.innerHTML || "").trim();
+  const leftHtml = sanitizeQuestionMemoHtml((leftEl.innerHTML || "").trim());
+  const rightHtml = sanitizeQuestionMemoHtml((rightEl.innerHTML || "").trim());
   const leftText = stripHtmlForKey(leftHtml);
   const rightText = stripHtmlForKey(rightHtml);
   if (!leftText || !rightText) return null;
@@ -1732,6 +1762,10 @@ function extractTaraRightHtml(html) {
   return match ? match[0] : prefix;
 }
 
+function isTariMemoType(type) {
+  return type === "Vたり" || type === "たり";
+}
+
 function getMemoDisplayItem(item) {
   const type = item.type || "";
   const leftText = item.leftText || stripHtmlForKey(item.leftHtml || "");
@@ -1762,7 +1796,7 @@ function getMemoTextWidth(item, isSmall, fontBump = 0) {
   const leftText = getMemoMeasureText(displayItem.leftHtml, displayItem.leftText);
   const rightText = getMemoMeasureText(displayItem.rightHtml, displayItem.rightText);
   const fontSize = (isSmall ? 8 : 12) + fontBump;
-  const horizontalPadding = isSmall ? 18 : 24;
+  const horizontalPadding = 2;
   const font = `700 ${fontSize}px "Hiragino Maru Gothic ProN", "Yu Gothic", sans-serif`;
 
   if (!getMemoTextWidth.canvas) {
@@ -1771,14 +1805,20 @@ function getMemoTextWidth(item, isSmall, fontBump = 0) {
 
   const ctx = getMemoTextWidth.canvas.getContext("2d");
   if (!ctx) {
-    return Math.ceil(Array.from(`${leftText}→${rightText}`).length * fontSize);
+    const leftLength = Array.from(`${leftText}→`).length;
+    const rightLength = Array.from(rightText).length;
+    const length = isTariMemoType(displayItem.type) ? Math.max(leftLength, rightLength) : leftLength + rightLength;
+    return Math.ceil(length * fontSize + horizontalPadding);
   }
 
   ctx.font = font;
   const leftWidth = ctx.measureText(leftText).width;
   const arrowWidth = ctx.measureText("→").width;
   const rightWidth = ctx.measureText(rightText).width;
-  return Math.ceil(leftWidth + arrowWidth + rightWidth + horizontalPadding);
+  const textWidth = isTariMemoType(displayItem.type)
+    ? Math.max(leftWidth + arrowWidth, rightWidth)
+    : leftWidth + arrowWidth + rightWidth;
+  return Math.ceil(textWidth + horizontalPadding);
 }
 
 function arrangeMemoRow(rowItems) {
@@ -1809,7 +1849,9 @@ function getMemoLayout(items) {
   const columns = 3;
   const rowsPerZone = Math.ceil(QUESTION_MEMO_ZONE_LIMIT / columns);
   const baseCardW = Math.floor((vw - margin * 2 - gap * (columns - 1)) / columns);
-  const maxCardW = Math.max(baseCardW, vw - margin * 2);
+  // 横長カードを行いっぱいに広げると、隣の？記録の上に白いカード背景が被るため、
+  // 各カードは自分の列幅内に収め、文字側を縮小して見切れを防ぐ。
+  const maxCardW = baseCardW;
   const cardH = isSmall ? 40 : 52;
   const title = document.querySelector(".page-title");
   const titleRect = title ? title.getBoundingClientRect() : null;
@@ -1820,7 +1862,6 @@ function getMemoLayout(items) {
     const roomyTextWidth = getMemoTextWidth(item, isSmall, 3);
     const isRoomy = roomyTextWidth <= baseCardW;
     const width = Math.min(maxCardW, Math.max(baseCardW, textWidth));
-    const rand = seededRandom(`${item.key}:${index}`);
 
     return {
       itemIndex: index,
@@ -1828,7 +1869,8 @@ function getMemoLayout(items) {
       height: cardH,
       isWide: width > baseCardW + 1,
       isRoomy,
-      rotation: rand() < 0.5 ? -1.5 : 1.5
+      // 回転させると角が隣のカードに少し重なり、白いボックスが上に乗って見えるため固定する。
+      rotation: 0
     };
   });
 
@@ -1938,7 +1980,8 @@ function renderQuestionMemoLayer() {
     const item = items[pos.itemIndex];
     const displayItem = getMemoDisplayItem(item);
     const card = document.createElement("div");
-    card.className = `question-memo-card${pos.isRoomy ? " memo-roomy" : ""}`;
+    const isStackedMemo = isTariMemoType(displayItem.type);
+    card.className = `question-memo-card${pos.isRoomy ? " memo-roomy" : ""}${isStackedMemo ? " memo-stacked" : ""}`;
     card.style.left = `${pos.x}px`;
     card.style.top = `${pos.y}px`;
     card.style.width = `${pos.width}px`;
@@ -1949,7 +1992,15 @@ function renderQuestionMemoLayer() {
     card.setAttribute("tabindex", "0");
     card.dataset.type = item.type;
     card.dataset.key = item.key;
-    card.innerHTML = `
+    card.innerHTML = isStackedMemo ? `
+      <span class="memo-pair memo-pair-stacked">
+        <span class="memo-top-line">
+          <span class="memo-left">${displayItem.leftHtml || ""}</span>
+          <span class="memo-arrow">→</span>
+        </span>
+        <span class="memo-right">${displayItem.rightHtml || ""}</span>
+      </span>
+    ` : `
       <span class="memo-pair">
         <span class="memo-left">${displayItem.leftHtml || ""}</span>
         <span class="memo-arrow">→</span>
@@ -1979,7 +2030,7 @@ function fitMemoCardText() {
     pair.style.setProperty("--memo-text-scale", "1");
     const availableWidth = Math.max(1, card.clientWidth - 2);
     const scale = Math.min(1, availableWidth / Math.max(1, pair.scrollWidth));
-    pair.style.setProperty("--memo-text-scale", String(Math.max(0.82, Math.floor(scale * 100) / 100)));
+    pair.style.setProperty("--memo-text-scale", String(Math.max(0.62, Math.floor(scale * 100) / 100)));
   });
 }
 
