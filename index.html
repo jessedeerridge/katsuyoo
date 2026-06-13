@@ -1809,7 +1809,9 @@ function getMemoLayout(items) {
   const columns = 3;
   const rowsPerZone = Math.ceil(QUESTION_MEMO_ZONE_LIMIT / columns);
   const baseCardW = Math.floor((vw - margin * 2 - gap * (columns - 1)) / columns);
-  const maxCardW = Math.max(baseCardW, vw - margin * 2);
+  // 横長カードを行いっぱいに広げると、隣の？記録の上に白いカード背景が被るため、
+  // 各カードは自分の列幅内に収め、文字側を縮小して見切れを防ぐ。
+  const maxCardW = baseCardW;
   const cardH = isSmall ? 40 : 52;
   const title = document.querySelector(".page-title");
   const titleRect = title ? title.getBoundingClientRect() : null;
@@ -1979,7 +1981,7 @@ function fitMemoCardText() {
     pair.style.setProperty("--memo-text-scale", "1");
     const availableWidth = Math.max(1, card.clientWidth - 2);
     const scale = Math.min(1, availableWidth / Math.max(1, pair.scrollWidth));
-    pair.style.setProperty("--memo-text-scale", String(Math.max(0.82, Math.floor(scale * 100) / 100)));
+    pair.style.setProperty("--memo-text-scale", String(Math.max(0.62, Math.floor(scale * 100) / 100)));
   });
 }
 
