@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
 
-<title>活用練習</title>
+<title>日本語練習</title>
 
 <style>
   @import url("https://fonts.googleapis.com/css2?family=Kosugi+Maru&family=Ma+Shan+Zheng&family=ZCOOL+KuaiLe&display=swap");
@@ -33,12 +33,14 @@
     padding: 18px;
   }
 
+  body.home-mode,
   body.menu-mode {
     height: 100vh;
     overflow: hidden;
     overscroll-behavior: none;
   }
 
+  body.home-mode #homeScreen,
   body.menu-mode #menuScreen {
     height: 100vh;
     height: 100svh;
@@ -46,7 +48,91 @@
     touch-action: none;
   }
 
+  #homeScreen {
+    display: block;
+  }
+
   #menuScreen {
+    display: none;
+  }
+
+  .home-panel {
+    min-height: calc(100vh - 36px);
+    min-height: calc(100svh - 36px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+  }
+
+  .home-title {
+    text-align: center;
+    font-size: 28px;
+    font-weight: 900;
+    color: #ff6fae;
+    margin-bottom: 4px;
+  }
+
+  .home-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    align-items: center;
+  }
+
+  .home-btn {
+    width: min(42vw, 168px);
+    height: min(42vw, 168px);
+    border: none;
+    border-radius: 28px;
+    font-size: 31px;
+    font-weight: 900;
+    color: #555;
+    background: #fff0f6;
+    box-shadow: 0 7px 0 #ffd1e6, 0 12px 20px rgba(0,0,0,0.10);
+    cursor: pointer;
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .home-btn:active {
+    transform: translateY(5px);
+    box-shadow: 0 2px 0 #ffd1e6, 0 6px 12px rgba(0,0,0,0.10);
+  }
+
+  .home-btn.listen-btn {
+    background: #eaf8ff;
+    box-shadow: 0 7px 0 #cfeeff, 0 12px 20px rgba(0,0,0,0.10);
+  }
+
+  .home-btn.speak-btn {
+    background: #fffbe3;
+    box-shadow: 0 7px 0 #eee2a4, 0 12px 20px rgba(0,0,0,0.10);
+  }
+
+  .home-btn.conjugation-btn {
+    background: #ffe8f5;
+    box-shadow: 0 7px 0 #ffd0e7, 0 12px 20px rgba(0,0,0,0.10);
+  }
+
+  .home-random-card {
+    display: none;
+    min-width: min(78vw, 320px);
+    padding: 10px 16px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.86);
+    border: 2px dashed rgba(255,111,174,0.58);
+    color: #ff5ca8;
+    font-size: 16px;
+    font-weight: 900;
+    text-align: center;
+    box-shadow: 0 5px 14px rgba(0,0,0,0.08);
+  }
+
+  .home-random-card.active {
     display: block;
   }
 
@@ -599,8 +685,22 @@
     box-shadow: 0 5px 14px rgba(0,0,0,0.06);
   }
 
+  #tableArea table.listen-table {
+    --table-font-size: 15px;
+  }
 
-  
+  #tableArea table.listen-table th:first-child,
+  #tableArea table.listen-table td:first-child {
+    width: 58%;
+  }
+
+  #tableArea table.listen-table th:last-child,
+  #tableArea table.listen-table td:last-child {
+    width: 42%;
+  }
+
+
+
 
 
   /* ===== 修正版 v6：Vて、配色再調整 ===== */
@@ -676,6 +776,7 @@
 
 
   /* ===== メニュー：そのページに存在するボタン群を画面中央に配置 ===== */
+  body.home-mode #homeScreen,
   body.menu-mode #menuScreen {
     position: relative;
     height: 100vh;
@@ -1001,7 +1102,7 @@
 </style>
 </head>
 
-<body class="menu-mode">
+<body class="home-mode">
 
 <div id="startNotice" class="start-notice-overlay" onclick="closeStartNotice()" role="button" aria-label="説明を閉じる">
   <table class="start-notice-table">
@@ -1014,9 +1115,22 @@
 </div>
 
 
+
+<div id="homeScreen" class="screen">
+  <div class="home-panel">
+    <div class="home-title"><span class="title-emoji left">🐢</span> 日本語れんしゅう <span class="title-emoji right">🐢</span></div>
+    <div id="homeRandomCard" class="home-random-card" aria-live="polite"></div>
+    <div class="home-actions" aria-label="練習メニュー">
+      <button class="home-btn listen-btn" type="button" onclick="openListenPage()">聞く</button>
+      <button class="home-btn speak-btn" type="button" onclick="openSpeakPage()">話す</button>
+      <button class="home-btn conjugation-btn" type="button" onclick="openConjugationMenu()">活用</button>
+    </div>
+  </div>
+</div>
+
 <div id="menuScreen" class="screen">
   <div id="questionMemoLayer" aria-hidden="true"></div>
-  <div class="page-title"><span class="title-emoji left">🐢</span> 活用れんしゅう <span class="title-emoji right">🐢</span></div>
+  <div class="page-title"><button class="back-btn" type="button" onclick="openHome()">← トップ</button><br><span class="title-emoji left">🐢</span> 活用れんしゅう <span class="title-emoji right">🐢</span></div>
 
   <div class="button-grid">
     <div class="menu-page active" data-page="0">
@@ -1100,6 +1214,124 @@ function closeStartNotice() {
   }
 }
 
+
+
+const HOME_RANDOM_THRESHOLD = 12;
+const homePracticeModes = [
+  { key: "speak", label: "話す", action: openSpeakPage },
+  { key: "listen", label: "聞く", action: openListenPage },
+  { key: "conjugation", label: "活用", action: openConjugationMenu }
+];
+let currentSection = "home";
+let homeRecommendedMode = null;
+
+const listenPracticeData = [
+  ["想问对方正在吃的料理怎么样", "どうですか。"],
+  ["想提议去某个地方（咖喱店）", "カレー屋はどうですか。"],
+  ["想问旅行的感想", "どうでしたか。"],
+  ["想问电影的感想", "どうでしたか。"],
+  ["想了解哥哥/弟弟的性格", "お兄さんはどんな人ですか。"],
+  ["想了解电影的大致内容", "どんな映画ですか。"],
+  ["想邀请对方去唱卡拉OK", "カラオケに行きませんか"],
+  ["想邀请对方一起烧烤", "バーベキューをしませんか"],
+  ["想问对方正在做什么", "なにをしていますか。"],
+  ["想问对方的工作", "なにをしていますか。"],
+  ["想问对方哪里不舒服", "どうしたんですか。"],
+  ["想知道对方为什么困扰", "どうしたんですか。"],
+  ["想知道对方为什么看起来很开心", "どうしたんですか。"],
+  ["想主动帮忙", "手伝いましょうか"],
+  ["想帮对方拿行李", "持ちましょうか"],
+  ["想知道是谁带来的", "だれが持ってきましたか。"],
+  ["想知道房间里有谁", "だれがいますか。"],
+  ["想问果汁还有没有剩", "まだジュースがありますか。"],
+  ["想问咖喱还有没有剩", "まだカレーがありますか。"],
+  ["想知道对方住在哪里", "どこに住んでいますか"],
+  ["想知道对方和谁一起住", "だれと住んでいますか"],
+  ["想问对方收到了什么礼物", "なにをもらいましたか。"],
+  ["想借自行车", "自転車を借りることができますか。"],
+  ["想买票", "チケットを買うことができますか。"],
+  ["想问作业做得怎么样了", "もう宿題をしましたか"],
+  ["想问对方吃饭了没有", "もうご飯を食べましたか"],
+  ["打电话时想确认对方能不能听见", "聞こえますか"],
+  ["想确认对方能不能看清黑板上的字", "見えますか"],
+  ["想去厕所", "トイレに行ってもいいですか"],
+  ["想休息一下", "ちょっと休んでもいいですか"],
+  ["想坐在旁边", "ここに座ってもいいですか"],
+  ["想问有没有好的店", "どこかいいお店を知っていますか。"],
+  ["想了解对方有没有什么健康习惯", "何か体にいいことをしていますか。"],
+  ["想了解对方有没有出国经历", "海外に行ったことがありますか。"],
+  ["想了解对方有没有潜水(ダイビング)经历", "ダイビングをしたことがありますか。"],
+  ["想介绍自己喜欢的歌手（周杰伦）", "周杰伦という歌手を知っていますか。"],
+  ["想介绍自己喜欢的动漫（コナン）", "「コナン」というアニメを知っていますか。"],
+  ["想把时间改到8点", "8時でもいいですか。"],
+  ["想把地点改到宿舍前面", "寮の前でもいいですか。"],
+  ["想请对方帮忙检查日语", "チェックしてもらえませんか。"],
+  ["想请对方再说一遍", "もう一度言ってもらえませんか"],
+  ["想请对方帮忙拍照", "写真をとってもらえませんか"],
+  ["想请对方帮忙", "手伝ってもらえませんか"],
+  ["不明白意思的时候", "どういう意味ですか。"],
+  ["想知道怎么去", "どうやって行ったらいいですか。"],
+  ["想知道怎么买票", "どうやって買ったらいいですか"],
+  ["想问对方推荐的店", "よく行くお店はどこですか。"],
+  ["想问对方推荐的歌", "よく聞く歌はなんですか。"],
+  ["想问哪里有卖便宜肉的店", "安い肉を売っているお店はどこにありますか。"]
+];
+
+function chooseHomeRecommendation() {
+  const card = document.getElementById("homeRandomCard");
+  if (!card) return;
+  const count = safeParseQuestionStore().length;
+  if (count <= HOME_RANDOM_THRESHOLD) {
+    homeRecommendedMode = null;
+    card.classList.remove("active");
+    card.textContent = "";
+    return;
+  }
+  const index = Math.floor(Math.random() * homePracticeModes.length);
+  homeRecommendedMode = homePracticeModes[index];
+  card.textContent = `？記録が${count}個あります。今日は「${homeRecommendedMode.label}」もおすすめ！`;
+  card.classList.add("active");
+}
+
+function openHome() {
+  currentSection = "home";
+  tableVisible = false;
+  stopMaskLoop();
+  clearAllMasks();
+  document.body.classList.remove("home-mode", "menu-mode", "sheet-high", "table-start-lowered");
+  document.body.classList.add("home-mode");
+  document.getElementById("tableScreen").style.display = "none";
+  document.getElementById("menuScreen").style.display = "none";
+  document.getElementById("homeScreen").style.display = "block";
+  chooseHomeRecommendation();
+  window.scrollTo(0, 0);
+}
+
+function openConjugationMenu() {
+  currentSection = "conjugation";
+  document.body.classList.remove("home-mode", "sheet-high", "table-start-lowered");
+  document.body.classList.add("menu-mode");
+  document.getElementById("homeScreen").style.display = "none";
+  document.getElementById("tableScreen").style.display = "none";
+  document.getElementById("menuScreen").style.display = "block";
+  updateMenuPage();
+  requestAnimationFrame(renderQuestionMemoLayer);
+  window.scrollTo(0, 0);
+}
+
+function openListenPage() {
+  currentSection = "listen";
+  showTable("聞く");
+}
+
+function openSpeakPage() {
+  currentSection = "speak";
+  showPlaceholderTable("話す", "話すページはまだ準備中です。", "home");
+}
+
+function escapeHtml(value) {
+  return String(value).replace(/[&<>'"]/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[char]));
+}
 
 let currentMenuPage = 0;
 const menuPageNames = ["基礎", "初級1", "初級2", "初中級"];
@@ -2350,11 +2582,42 @@ function toggleRandomOrder() {
   afterTableOrderChanged();
 }
 
+
+function makeListenTable() {
+  const rows = listenPracticeData.map(([prompt, answer]) => `
+    <tr>
+      <td>${makeWordCell(escapeHtml(prompt))}</td>
+      <td><span class="answer-text">${escapeHtml(answer)}</span></td>
+    </tr>
+  `).join("");
+  document.getElementById("tableArea").innerHTML = `
+    <table class="listen-table">
+      <tr><th>场面</th><th>日本語</th></tr>
+      ${rows}
+    </table>
+  `;
+}
+
+function showPlaceholderTable(title, message, returnSection = "home") {
+  currentSection = returnSection;
+  document.body.classList.remove("home-mode", "menu-mode", "sheet-high", "table-start-lowered");
+  document.getElementById("homeScreen").style.display = "none";
+  document.getElementById("menuScreen").style.display = "none";
+  document.getElementById("tableScreen").style.display = "block";
+  document.getElementById("tableTitle").textContent = title;
+  document.getElementById("tableArea").innerHTML = `<div class="placeholder">${escapeHtml(message)}</div>`;
+  tableVisible = false;
+  stopMaskLoop();
+  clearAllMasks();
+  window.scrollTo(0, 0);
+}
+
 function showTable(type, focusKey = "") {
-  document.body.classList.remove("menu-mode", "sheet-high", "table-start-lowered");
+  document.body.classList.remove("home-mode", "menu-mode", "sheet-high", "table-start-lowered");
   if (type === "Vて" || type === "Vた") {
     document.body.classList.add("table-start-lowered");
   }
+  document.getElementById("homeScreen").style.display = "none";
   document.getElementById("menuScreen").style.display = "none";
   document.getElementById("tableScreen").style.display = "block";
   document.getElementById("tableTitle").textContent = type;
@@ -2365,7 +2628,9 @@ function showTable(type, focusKey = "") {
 
   tableVisible = true;
 
-  if (type === "Vます") {
+  if (type === "聞く") {
+    makeListenTable();
+  } else if (type === "Vます") {
     masuSwapped = false;
     makeMasuTable();
   } else if (type === "Vたいです" || type === "Vたい" || type === "たい") {
@@ -2487,9 +2752,16 @@ function backMenu() {
   clearAllMasks();
 
   document.getElementById("tableScreen").style.display = "none";
-  document.getElementById("menuScreen").style.display = "block";
-  document.body.classList.add("menu-mode");
-  requestAnimationFrame(renderQuestionMemoLayer);
+  if (currentSection === "conjugation") {
+    document.getElementById("homeScreen").style.display = "none";
+    document.getElementById("menuScreen").style.display = "block";
+    document.body.classList.remove("home-mode");
+    document.body.classList.add("menu-mode");
+    requestAnimationFrame(renderQuestionMemoLayer);
+  } else {
+    openHome();
+    return;
+  }
 
   window.scrollTo(0, 0);
 }
@@ -4761,6 +5033,7 @@ window.addEventListener("load", () => {
   bootstrapQuestionStorePersistence();
   updateMenuPage();
   renderQuestionMemoLayer();
+  chooseHomeRecommendation();
   requestAnimationFrame(() => {
     fitTableTextOneLine();
     adjustScrollExtraHeight();
