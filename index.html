@@ -75,15 +75,16 @@
   }
 
   .home-actions {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 14px;
     align-items: center;
+    justify-items: center;
   }
 
   .home-btn {
-    width: min(42vw, 168px);
-    height: min(42vw, 168px);
+    width: min(38vw, 168px);
+    height: min(38vw, 168px);
     border: none;
     border-radius: 28px;
     font-size: 31px;
@@ -113,27 +114,14 @@
     box-shadow: 0 7px 0 #eee2a4, 0 12px 20px rgba(0,0,0,0.10);
   }
 
+  .home-btn.connect-btn {
+    background: #f0faeb;
+    box-shadow: 0 7px 0 #d1e5ca, 0 12px 20px rgba(0,0,0,0.10);
+  }
+
   .home-btn.conjugation-btn {
     background: #ffe8f5;
     box-shadow: 0 7px 0 #ffd0e7, 0 12px 20px rgba(0,0,0,0.10);
-  }
-
-  .home-random-card {
-    display: none;
-    min-width: min(78vw, 320px);
-    padding: 10px 16px;
-    border-radius: 999px;
-    background: rgba(255,255,255,0.86);
-    border: 2px dashed rgba(255,111,174,0.58);
-    color: #ff5ca8;
-    font-size: 16px;
-    font-weight: 900;
-    text-align: center;
-    box-shadow: 0 5px 14px rgba(0,0,0,0.08);
-  }
-
-  .home-random-card.active {
-    display: block;
   }
 
   .page-title {
@@ -816,6 +804,7 @@
 
 
   /* ===== ？保存メモ：トップ画面に小さく表示 ===== */
+  #homeQuestionMemoLayer,
   #questionMemoLayer {
     position: fixed;
     inset: 0;
@@ -1117,12 +1106,13 @@
 
 
 <div id="homeScreen" class="screen">
+  <div id="homeQuestionMemoLayer" aria-hidden="true"></div>
   <div class="home-panel">
     <div class="home-title"><span class="title-emoji left">🐢</span> 日本語れんしゅう <span class="title-emoji right">🐢</span></div>
-    <div id="homeRandomCard" class="home-random-card" aria-live="polite"></div>
     <div class="home-actions" aria-label="練習メニュー">
       <button class="home-btn listen-btn" type="button" onclick="openListenPage()">聞く</button>
       <button class="home-btn speak-btn" type="button" onclick="openSpeakPage()">話す</button>
+      <button class="home-btn connect-btn" type="button" onclick="openConnectPage()">つなぐ</button>
       <button class="home-btn conjugation-btn" type="button" onclick="openConjugationMenu()">活用</button>
     </div>
   </div>
@@ -1216,14 +1206,13 @@ function closeStartNotice() {
 
 
 
-const HOME_RANDOM_THRESHOLD = 12;
-const homePracticeModes = [
-  { key: "speak", label: "話す", action: openSpeakPage },
-  { key: "listen", label: "聞く", action: openListenPage },
-  { key: "conjugation", label: "活用", action: openConjugationMenu }
-];
+const TOP_MEMO_DISPLAY_LIMIT = 12;
+const nonConjugationQuestionTypes = new Set(["聞く", "話す", "つなぐ"]);
 let currentSection = "home";
-let homeRecommendedMode = null;
+
+function isConjugationQuestionItem(item) {
+  return item && !nonConjugationQuestionTypes.has(item.type);
+}
 
 const listenPracticeData = [
   ["想问对方正在吃的料理怎么样", "どうですか。"],
@@ -1277,22 +1266,6 @@ const listenPracticeData = [
   ["想问哪里有卖便宜肉的店", "安い肉を売っているお店はどこにありますか。"]
 ];
 
-function chooseHomeRecommendation() {
-  const card = document.getElementById("homeRandomCard");
-  if (!card) return;
-  const count = safeParseQuestionStore().length;
-  if (count <= HOME_RANDOM_THRESHOLD) {
-    homeRecommendedMode = null;
-    card.classList.remove("active");
-    card.textContent = "";
-    return;
-  }
-  const index = Math.floor(Math.random() * homePracticeModes.length);
-  homeRecommendedMode = homePracticeModes[index];
-  card.textContent = `？記録が${count}個あります。今日は「${homeRecommendedMode.label}」もおすすめ！`;
-  card.classList.add("active");
-}
-
 function openHome() {
   currentSection = "home";
   tableVisible = false;
@@ -1303,7 +1276,7 @@ function openHome() {
   document.getElementById("tableScreen").style.display = "none";
   document.getElementById("menuScreen").style.display = "none";
   document.getElementById("homeScreen").style.display = "block";
-  chooseHomeRecommendation();
+  requestAnimationFrame(renderQuestionMemoLayer);
   window.scrollTo(0, 0);
 }
 
@@ -1327,6 +1300,11 @@ function openListenPage() {
 function openSpeakPage() {
   currentSection = "speak";
   showPlaceholderTable("話す", "話すページはまだ準備中です。", "home");
+}
+
+function openConnectPage() {
+  currentSection = "connect";
+  showPlaceholderTable("つなぐ", "つなぐページはまだ準備中です。", "home");
 }
 
 function escapeHtml(value) {
@@ -2430,11 +2408,14 @@ function getRandomQuestionMemoItems(items, limit) {
 }
 
 function renderQuestionMemoLayer() {
-  const layer = document.getElementById("questionMemoLayer");
-  const menu = document.getElementById("menuScreen");
-  if (!layer || !menu || menu.style.display === "none") return;
+  const isConjugationMenu = currentSection === "conjugation";
+  const screen = document.getElementById(isConjugationMenu ? "menuScreen" : "homeScreen");
+  const layer = document.getElementById(isConjugationMenu ? "questionMemoLayer" : "homeQuestionMemoLayer");
+  if (!layer || !screen || screen.style.display === "none") return;
 
-  const items = getRandomQuestionMemoItems(safeParseQuestionStore(), QUESTION_MEMO_DISPLAY_LIMIT);
+  const allItems = safeParseQuestionStore();
+  const sourceItems = isConjugationMenu ? allItems.filter(isConjugationQuestionItem) : allItems;
+  const items = getRandomQuestionMemoItems(sourceItems, TOP_MEMO_DISPLAY_LIMIT);
   layer.innerHTML = "";
   if (!items.length) return;
 
@@ -2595,6 +2576,7 @@ function makeListenTable() {
       <tr><th>场面</th><th>日本語</th></tr>
       ${rows}
     </table>
+    <div class="scroll-extra-y"></div>
   `;
 }
 
@@ -5033,7 +5015,6 @@ window.addEventListener("load", () => {
   bootstrapQuestionStorePersistence();
   updateMenuPage();
   renderQuestionMemoLayer();
-  chooseHomeRecommendation();
   requestAnimationFrame(() => {
     fitTableTextOneLine();
     adjustScrollExtraHeight();
