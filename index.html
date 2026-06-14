@@ -132,6 +132,31 @@
     margin: 12px 0 18px;
   }
 
+  .menu-title-row {
+    position: relative;
+    min-height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .menu-title-row .page-title {
+    flex: 1;
+    margin: 12px 72px 18px;
+  }
+
+  .menu-back-btn {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+  }
+
+  .menu-back-btn:active {
+    transform: translateY(calc(-50% + 2px));
+  }
+
   .title-emoji {
     display: inline-block;
     vertical-align: middle;
@@ -1120,7 +1145,10 @@
 
 <div id="menuScreen" class="screen">
   <div id="questionMemoLayer" aria-hidden="true"></div>
-  <div class="page-title"><button class="back-btn" type="button" onclick="openHome()">← トップ</button><br><span class="title-emoji left">🐢</span> 活用れんしゅう <span class="title-emoji right">🐢</span></div>
+  <div class="menu-title-row">
+    <button class="back-btn menu-back-btn" type="button" onclick="openHome()">← 戻る</button>
+    <div class="page-title"><span class="title-emoji left">🐢</span> 活用れんしゅう <span class="title-emoji right">🐢</span></div>
+  </div>
 
   <div class="button-grid">
     <div class="menu-page active" data-page="0">
@@ -2226,6 +2254,14 @@ function isTariMemoType(type) {
   return type === "Vたり" || type === "たり";
 }
 
+function isNonConjugationMemoType(type) {
+  return nonConjugationQuestionTypes.has(type);
+}
+
+function isStackedMemoType(type) {
+  return isTariMemoType(type) || isNonConjugationMemoType(type);
+}
+
 function getMemoDisplayItem(item) {
   const type = item.type || "";
   const leftText = item.leftText || stripHtmlForKey(item.leftHtml || "");
@@ -2267,7 +2303,7 @@ function getMemoTextWidth(item, isSmall, fontBump = 0) {
   if (!ctx) {
     const leftLength = Array.from(`${leftText}→`).length;
     const rightLength = Array.from(rightText).length;
-    const length = isTariMemoType(displayItem.type) ? Math.max(leftLength, rightLength) : leftLength + rightLength;
+    const length = isStackedMemoType(displayItem.type) ? Math.max(leftLength, rightLength) : leftLength + rightLength;
     return Math.ceil(length * fontSize + horizontalPadding);
   }
 
@@ -2275,7 +2311,7 @@ function getMemoTextWidth(item, isSmall, fontBump = 0) {
   const leftWidth = ctx.measureText(leftText).width;
   const arrowWidth = ctx.measureText("→").width;
   const rightWidth = ctx.measureText(rightText).width;
-  const textWidth = isTariMemoType(displayItem.type)
+  const textWidth = isStackedMemoType(displayItem.type)
     ? Math.max(leftWidth + arrowWidth, rightWidth)
     : leftWidth + arrowWidth + rightWidth;
   return Math.ceil(textWidth + horizontalPadding);
@@ -2430,7 +2466,7 @@ function renderQuestionMemoLayer() {
     const item = items[pos.itemIndex];
     const displayItem = getMemoDisplayItem(item);
     const card = document.createElement("div");
-    const isStackedMemo = isTariMemoType(displayItem.type);
+    const isStackedMemo = isStackedMemoType(displayItem.type);
     card.className = `question-memo-card${pos.isRoomy ? " memo-roomy" : ""}${isStackedMemo ? " memo-stacked" : ""}`;
     card.style.left = `${pos.x}px`;
     card.style.top = `${pos.y}px`;
@@ -2583,6 +2619,7 @@ function makeListenTable() {
 function showPlaceholderTable(title, message, returnSection = "home") {
   currentSection = returnSection;
   document.body.classList.remove("home-mode", "menu-mode", "sheet-high", "table-start-lowered");
+  document.body.classList.add("table-start-lowered");
   document.getElementById("homeScreen").style.display = "none";
   document.getElementById("menuScreen").style.display = "none";
   document.getElementById("tableScreen").style.display = "block";
@@ -2596,7 +2633,7 @@ function showPlaceholderTable(title, message, returnSection = "home") {
 
 function showTable(type, focusKey = "") {
   document.body.classList.remove("home-mode", "menu-mode", "sheet-high", "table-start-lowered");
-  if (type === "Vて" || type === "Vた") {
+  if (type === "Vて" || type === "Vた" || type === "聞く") {
     document.body.classList.add("table-start-lowered");
   }
   document.getElementById("homeScreen").style.display = "none";
